@@ -1,0 +1,10 @@
+Compile: py app.py
+-> pip is the package manager for the python
+
+-> py pip -m install flask
+Flask is a tool that lets you create webpages using python
+
+-> py -m pip install flask_sqlalchemy
+It helps you save orders and customers into database.db.
+
+
