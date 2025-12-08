@@ -19,7 +19,7 @@
     <div class="container mt-4">
 
         <!-- Top Bar -->
-        <div class="d-flex justify-content-between align-items-center top-bar">
+        <div class="d-flex justify-content-between align-items-center home-top-bar">
             <a href="/add_order" class="btn add-order-btn">+ Add Order</a>
 
             <form class="d-flex w-50" action="#">
@@ -32,7 +32,7 @@
         <div class="table-responsive">
             {% if orders %}
             <table class="table table-striped table-bordered align-middle">
-                <thead class="table_header">
+                <thead class="home-table-header">
                     <tr>
                         <th>ID</th>
                         <th>Date</th>
@@ -40,7 +40,7 @@
                         <th>Phone</th>
                         <th>Order For</th>
                         <th>Order Type</th>
-                        <th>Image</th>
+                        <th>Details</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -58,7 +58,7 @@
                             {% if order.image %}
                             <a href="{{ url_for('static', filename='uploads/' ~ order.image) }}" target="_blank">
                                 <img src="{{ url_for('static', filename='uploads/' ~ order.image) }}"
-                                    class="order-image img-thumbnail" style="width:100px; cursor:pointer;">
+                                    class="home-order-image img-thumbnail" style="width:100px; cursor:pointer;">
                             </a>
                             {% else %}
                             No Image

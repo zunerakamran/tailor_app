@@ -1,15 +1,42 @@
+:root {
+    --theme-color: #17a2b8;
+    --theme-gradient: linear-gradient(135deg, #17a2b8, #138496);
+}
+
+body {
+    background-color: #f8f9fa;
+}
+
+/* Home Page styling */
+.home-top-bar {
+    margin-bottom: 20px;
+}
+
+.home-table-header th {
+    background-color: var(--theme-color);
+    color: white;
+}
+
+.home-order-image {
+    height: 100px;
+    width: 100px;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+/* Add Order Page Styling */
 .add-order-header {
-    background-color: #17a2b8 !important;
+    background-color: var(--theme-color) !important;
     color: white;
 }
 
 .add-order-btn {
-    background-color: #17a2b8 !important;
+    background-color: var(--theme-color) !important;
     color: white;
 }
 
 .add-order-btn:hover {
-    border: 1px solid #17a2b8 !important;
+    border: 1px solid var(--theme-color) !important;
     color: white;
     font-weight: bold;
     transform: scale(1.05);
@@ -19,7 +46,7 @@
 .add-order-image-box {
     width: 100px;
     height: 100px;
-    border: 2px dashed #17a2b8;
+    border: 2px dashed var(--theme-color);
     border-radius: 10px;
     display: flex;
     justify-content: center;
@@ -46,22 +73,56 @@ input[type="file"] {
     display: none;
 }
 
-body {
-    background-color: #f8f9fa;
+/* View Order page Styling */
+.view-order-card {
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
 }
 
-.top-bar {
-    margin-bottom: 20px;
+.view-order-card-header {
+    background: var(--theme-gradient);
+    color: #fff;
+    padding: 20px 25px;
+    font-size: 1.5rem;
+    font-weight: 600;
 }
 
-.table_header th {
-    background-color: #17a2b8;
-    color: white;
+.view-order-section-title {
+    color: var(--theme-color);
+    font-weight: 600;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--theme-color);
+    padding-bottom: 5px;
 }
 
-.order-image {
-    height: 100px;
-    width: 100px;
+.view-order-info-label {
+    font-size: 18px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.view-order-info-value {
+    color: #343a40;
+}
+
+.view-order-image {
+    width: 150px;
+    height: 150px;
     object-fit: cover;
-    cursor: pointer;
+    border-radius: 12px;
+    transition: transform 0.2s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.view-order-image:hover {
+    transform: scale(1.05);
+}
+
+.view-order-notes-box {
+    background-color: #e0f7fa;
+    border-left: 5px solid var(--theme-color);
+    padding: 15px;
+    border-radius: 10px;
+
 }

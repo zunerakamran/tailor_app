@@ -1,5 +1,4 @@
 //view image in the box when user selected the image
-
 const add_order_image_input = document.getElementById('add-order-imageInput');
 const add_order_image_preview = document.getElementById('add-order-image-preview');
 const add_order_image_plusIcon = document.querySelector('.add-order-image-plus-icon');
@@ -21,13 +20,4 @@ add_order_image_input.addEventListener('change', function () {
         reader.readAsDataURL(file);
     }
 });
-
-
-const imageModal = document.getElementById('imageModal')
-imageModal.addEventListener('show.bs.modal', event => {
-    const img = event.relatedTarget
-    const src = img.getAttribute('data-image')
-    const modalImg = imageModal.querySelector('#modalImage')
-    modalImg.src = src
-})
 
