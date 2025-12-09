@@ -19,8 +19,7 @@ class Order(db.Model):
     address = db.Column(db.String(100), nullable=False)  # Address
     order_for = db.Column(db.String(50), nullable=False)  # Order For
     order_type = db.Column(db.String(50), nullable=False)  # Order Type
-    status = db.Column(db.String(20), nullable=False)  # Status
-    image = db.Column(db.String(100))  # Image file name/path
+    image = db.Column(db.Text) 
     notes = db.Column(db.String(200))  # Notes
 
     def __repr__(self):
@@ -41,7 +40,6 @@ def add_order():
         address = request.form['address']
         order_for = request.form['order_for']
         order_type = request.form['order_type']
-        status = request.form['status']
         notes = request.form['notes']
 
         # Handle image upload
@@ -59,7 +57,6 @@ def add_order():
             address=address,
             order_for=order_for,
             order_type=order_type,
-            status=status,
             image=image_file.filename if image_file else None,
             notes=notes
         )

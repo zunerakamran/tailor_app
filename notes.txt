@@ -1,4 +1,4 @@
-Compile: py app.py
+-> Compile: py app.py
 -> pip is the package manager for the python
 
 -> py pip -m install flask
@@ -6,5 +6,16 @@ Flask is a tool that lets you create webpages using python
 
 -> py -m pip install flask_sqlalchemy
 It helps you save orders and customers into database.db.
+
+-> Uploading the images on google drive
+a. Enable Google Drive API
+1. Go to https://console.cloud.google.com/?pli=1
+2. Create new project
+3. Navigate to APIs & Services → Library → Google Drive API → Enable
+4. Go to APIs & Services → Credentials → Create credentials → Service account.
+5. Download the JSON key file (service_account.json).
+
+b. Install Require Python Library
+
 
 

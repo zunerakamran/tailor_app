@@ -34,8 +34,8 @@
 
                         <div class="col-md-6">
                             <label class="form-label">Customer Phone Number</label>
-                            <input type="text" name="phone" class="form-control" placeholder="Enter Customer Phone Number"
-                                required>
+                            <input type="text" name="phone" class="form-control"
+                                placeholder="Enter Customer Phone Number" required>
                         </div>
                     </div>
 
@@ -50,8 +50,7 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Order For</label>
-                            <input type="text" name="order_for" class="form-control" value="Self" 
-                                required>
+                            <input type="text" name="order_for" class="form-control" value="Self" required>
                         </div>
 
                         <div class="col-md-6">
@@ -67,18 +66,22 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <!-- Image Upload -->
-                        <label class="form-label">Details</label><br>
 
-                        <!-- CLICKABLE BOX -->
-                        <label for="add-order-imageInput" class="add-order-image-box" id="add-order-image-box">
-                            <span class="add-order-image-plus-icon">+</span>
-                            <img id="add-order-image-preview">
+                    <div id="image-container" class="image-container">
+                        <!-- First + box with mobile input -->
+                        <label class="add-image-box" id="add-btn">
+                            <span class="plus-icon">+</span>
+                            <input type="file" accept="image/*" capture="environment" style="display:none;">
                         </label>
+                    </div>
 
-                        <!-- HIDDEN INPUT -->
-                        <input type="file" id="add-order-imageInput" name="image" accept="image/*" required>
+                    <!-- Webcam modal for desktop -->
+                    <div id="camera-modal" class="camera-modal" style="display:none;">
+                        <video id="camera-stream" autoplay playsinline muted></video>
+                        <div class="camera-controls">
+                            <button id="capture-btn" type="button">Capture</button>
+                            <button id="close-camera" type="button">Close</button>
+                        </div>
                     </div>
 
                     <!-- Notes -->

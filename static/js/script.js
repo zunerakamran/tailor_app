@@ -1,23 +1,114 @@
-//view image in the box when user selected the image
-const add_order_image_input = document.getElementById('add-order-imageInput');
-const add_order_image_preview = document.getElementById('add-order-image-preview');
-const add_order_image_plusIcon = document.querySelector('.add-order-image-plus-icon');
-const add_order_image_box = document.getElementById('add-order-image-box');
+const imageContainer = document.getElementById("image-container");
+const addBtn = document.getElementById("add-btn");
 
-add_order_image_input.addEventListener('change', function () {
-    const file = this.files[0];
+const cameraModal = document.getElementById("camera-modal");
+const cameraStream = document.getElementById("camera-stream");
+const captureBtn = document.getElementById("capture-btn");
+const closeCameraBtn = document.getElementById("close-camera");
 
-    if (file) {
-        const reader = new FileReader();
+const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
-        reader.onload = function (e) {
-            add_order_image_preview.src = e.target.result;
-            add_order_image_preview.style.display = "block";
-            add_order_image_plusIcon.style.display = "none";
-            add_order_image_box.style.border = "none";
-        }
+let stream = null;
+let webcamOpen = false;
 
-        reader.readAsDataURL(file);
+// ---------- Create image preview ----------
+function createImagePreview(src) {
+    const imgBox = document.createElement("div");
+    imgBox.classList.add("image-preview-box");
+    imgBox.innerHTML = `<img src="${src}" alt="Captured Image">`;
+
+    const lastAddBox = imageContainer.querySelector(".add-image-box:last-child");
+    if (lastAddBox) {
+        imageContainer.insertBefore(imgBox, lastAddBox);
+    } else {
+        imageContainer.appendChild(imgBox);
     }
+}
+
+// ---------- Setup + box ----------
+function setupAddBox(box) {
+    if (isMobile) {
+        const input = box.querySelector("input");
+        if (!input) console.error("error");
+
+        box.addEventListener("click", () => input.click());
+
+        input.addEventListener("change", () => {
+            if (!input.files || input.files.length === 0) console.error("error");
+
+            Array.from(input.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (ev) => createImagePreview(ev.target.result);
+                reader.readAsDataURL(file);
+            });
+
+            input.remove(); // remove used input
+            addNewAddBox(); // create new + box with fresh input
+        });
+    } else {
+        // Desktop: open webcam modal
+        box.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (!webcamOpen) openWebcam();
+        });
+    }
+}
+
+// ---------- Add new + box ----------
+function addNewAddBox() {
+    const newBox = document.createElement("label");
+    newBox.classList.add("add-image-box");
+    newBox.innerHTML = `<span class="plus-icon">+</span>`;
+
+    if (isMobile) {
+        // Add a new input for mobile
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.capture = "environment";
+        input.style.display = "none";
+        newBox.appendChild(input);
+    }
+
+    imageContainer.appendChild(newBox);
+    setupAddBox(newBox);
+}
+
+// ---------- Desktop webcam ----------
+async function openWebcam() {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+
+    try {
+        webcamOpen = true;
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        cameraStream.srcObject = stream;
+        await cameraStream.play();
+        cameraModal.style.display = "flex";
+    } catch (err) {
+        alert("Cannot access webcam: " + err);
+        webcamOpen = false;
+        cameraModal.style.display = "none";
+    }
+}
+
+// ---------- Capture webcam image ----------
+captureBtn.addEventListener("click", () => {
+    if (!stream) return;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = cameraStream.videoWidth;
+    canvas.height = cameraStream.videoHeight;
+    canvas.getContext("2d").drawImage(cameraStream, 0, 0);
+
+    createImagePreview(canvas.toDataURL("image/png"));
 });
 
+// ---------- Close webcam ----------
+closeCameraBtn.addEventListener("click", () => {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    cameraModal.style.display = "none";
+    webcamOpen = false;
+});
+
+// ---------- Initialize first + box ----------
+setupAddBox(addBtn);
