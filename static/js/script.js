@@ -1,15 +1,43 @@
+const addOrderForm = document.getElementById("add-order-form")
 const imageContainer = document.getElementById("image-container");
 const addBtn = document.getElementById("add-btn");
-
+const mobileFileInput = document.getElementById("mobile-file-input");
 const cameraModal = document.getElementById("camera-modal");
 const cameraStream = document.getElementById("camera-stream");
 const captureBtn = document.getElementById("capture-btn");
 const closeCameraBtn = document.getElementById("close-camera");
-
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
+const capturedFiles = []
 let stream = null;
 let webcamOpen = false;
+
+// ---------- Unified function to handle + boxes ----------
+function setupAddBox(box) {
+    const input = box.querySelector("input");
+
+    if (isMobile) {
+
+        // Handle file selection
+        input.addEventListener("change", () => {
+            if (!input.files) return;
+            Array.from(input.files).forEach(file => {
+                capturedFiles.push(file); // store file
+                const reader = new FileReader();
+                reader.onload = ev => createImagePreview(ev.target.result);
+                reader.readAsDataURL(file);
+            });
+            input.value = "";
+        });
+    } else {
+        // Desktop: clicking box opens webcam
+        if (input) {
+            input.remove()
+        }
+        box.addEventListener("click", () => {
+            if (!webcamOpen) openWebcam();
+        });
+    }
+}
 
 // ---------- Create image preview ----------
 function createImagePreview(src) {
@@ -25,56 +53,30 @@ function createImagePreview(src) {
     }
 }
 
-// ---------- Setup + box ----------
-function setupAddBox(box) {
-    if (isMobile) {
-        const input = box.querySelector("input");
-        if (!input) console.error("error");
-
-        box.addEventListener("click", () => input.click());
-
-        input.addEventListener("change", () => {
-            if (!input.files || input.files.length === 0) console.error("error");
-
-            Array.from(input.files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (ev) => createImagePreview(ev.target.result);
-                reader.readAsDataURL(file);
-            });
-
-            input.remove(); // remove used input
-            addNewAddBox(); // create new + box with fresh input
-        });
-    } else {
-        // Desktop: open webcam modal
-        box.addEventListener("click", (e) => {
-            e.preventDefault();
-            if (!webcamOpen) openWebcam();
-        });
-    }
-}
-
 // ---------- Add new + box ----------
 function addNewAddBox() {
     const newBox = document.createElement("label");
     newBox.classList.add("add-image-box");
-    newBox.innerHTML = `<span class="plus-icon">+</span>`;
-
-    if (isMobile) {
-        // Add a new input for mobile
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-        input.capture = "environment";
-        input.style.display = "none";
-        newBox.appendChild(input);
-    }
+    newBox.innerHTML = `<span class="plus-icon">+</span>
+        <input type="file" accept="image/*" capture="environment" multiple style="display:none;">`;
 
     imageContainer.appendChild(newBox);
     setupAddBox(newBox);
 }
 
-// ---------- Desktop webcam ----------
+// ---------- Initialize first box ----------
+if (isMobile) {
+    const mobileInput = document.createElement("input");
+    mobileInput.type = "file";
+    mobileInput.accept = "image/*";
+    mobileInput.capture = "environment";
+    mobileInput.multiple = true;
+    mobileInput.style.display = "none";
+    addBtn.appendChild(mobileInput);
+}
+setupAddBox(addBtn);
+
+// ---------- Desktop webcam functions ----------
 async function openWebcam() {
     if (stream) stream.getTracks().forEach(t => t.stop());
 
@@ -91,7 +93,6 @@ async function openWebcam() {
     }
 }
 
-// ---------- Capture webcam image ----------
 captureBtn.addEventListener("click", () => {
     if (!stream) return;
 
@@ -100,15 +101,30 @@ captureBtn.addEventListener("click", () => {
     canvas.height = cameraStream.videoHeight;
     canvas.getContext("2d").drawImage(cameraStream, 0, 0);
 
-    createImagePreview(canvas.toDataURL("image/png"));
+    canvas.toBlob(blob => {
+        capturedFiles.push(new File([blob], `webcam-${Date.now()}.png`, { type: "image/png" }));
+        createImagePreview(URL.createObjectURL(blob));
+    }, "image/png");
 });
 
-// ---------- Close webcam ----------
 closeCameraBtn.addEventListener("click", () => {
     if (stream) stream.getTracks().forEach(t => t.stop());
     cameraModal.style.display = "none";
     webcamOpen = false;
 });
 
-// ---------- Initialize first + box ----------
-setupAddBox(addBtn);
+addOrderForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(addOrderForm);
+    capturedFiles.forEach(file => formData.append("images[]", file));
+
+    const res = await fetch(addOrderForm.action, {
+        method: addOrderForm.method,
+        body: formData
+    });
+
+    const data = await res.json();
+    console.log("Form submission response:", data);
+});
+

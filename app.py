@@ -6,6 +6,8 @@ app = Flask(__name__)
 
 # Database setup (SQLite example)
 basedir = os.path.abspath(os.path.dirname(__file__))
+UPLOAD_FOLDER = os.path.join(basedir, 'static', 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'orders.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -31,41 +33,59 @@ def home():
     orders = Order.query.all() 
     return render_template('home.html', orders=orders)
 
+@app.route('/test')
+def test():
+    return render_template('test.html')
+
 @app.route('/add_order', methods=['GET', 'POST'])
 def add_order():
     if request.method == 'POST':
-        # Get form data
-        customer_name = request.form['customer_name']
-        phone = request.form['phone']
-        address = request.form['address']
-        order_for = request.form['order_for']
-        order_type = request.form['order_type']
-        notes = request.form['notes']
+        
 
-        # Handle image upload
-        image_file = request.files['image']
-        if image_file:
-            image_path = os.path.join('static/uploads', image_file.filename)
-            image_file.save(image_path)
-        else:
-            image_path = None
+        name = request.form.get('name')
+        phone = request.form.get('phone')
+        address = request.form.get('address')
+        order_for = request.form.get('order_for')
+        order_type = request.form.get('order_type')
+        notes = request.form.get('notes')
 
-        # Create new order object
-        new_order = Order(
-            customer_name=customer_name,
-            phone=phone,
-            address=address,
-            order_for=order_for,
-            order_type=order_type,
-            image=image_file.filename if image_file else None,
-            notes=notes
-        )
+        print("Customer Name:", name)
+        print("Phone:", phone)
+        print("Address:", address)
+        print("Order For:", order_for)
+        print("Order Type:", order_type)
+        print("Notes:", notes)
 
-        # Add to database
-        db.session.add(new_order)
-        db.session.commit()
+        # Handle multiple image uploads
+        images = request.files.getlist('images[]')
+        image_paths = []
 
-        return redirect(url_for('home'))
+        for image_file in images:
+            if image_file and image_file.filename != '':
+                image_path = os.path.join(UPLOAD_FOLDER, image_file.filename)
+                image_file.save(image_path)
+                image_paths.append(image_path)
+                print("Saved image:", image_path)  # console log for each image
+
+        # Log all uploaded images at once
+        print("All uploaded images:", image_paths)
+
+        # # Create new order object
+        # new_order = Order(
+        #     customer_name=customer_name,
+        #     phone=phone,
+        #     address=address,
+        #     order_for=order_for,
+        #     order_type=order_type,
+        #     image=image_file.filename if image_file else None,
+        #     notes=notes
+        # )
+
+        # # Add to database
+        # db.session.add(new_order)
+        # db.session.commit()
+
+        return {"success": True, "uploaded": len(image_paths)}
 
     return render_template('add_order.html')
 
@@ -75,4 +95,6 @@ def view_order(order_id):
     return render_template('view_order.html', order=order)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # app.run(debug=True)
+    # app.run(host='0.0.0.0', port=5000, ssl_context='adhoc')
+    app.run(host='0.0.0.0', port=5000)

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Camera Capture</title>
+    <style>
+        #preview img {
+            width: 120px;
+            margin: 5px;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Camera Capture (Front + Back)</h2>
+
+    <video id="camera" autoplay playsinline style="width: 100%; max-width: 400px;"></video>
+    <br><br>
+
+    <button id="switchBtn">Switch Camera</button>
+    <button id="captureBtn">Capture</button>
+
+    <h3>Captured Images:</h3>
+    <div id="preview"></div>
+
+    <script>
+        let video = document.getElementById("camera");
+        let switchBtn = document.getElementById("switchBtn");
+        let captureBtn = document.getElementById("captureBtn");
+
+        let usingBackCamera = true; // start with back camera
+        let currentStream = null;
+
+        // start camera with selected facing mode
+        async function startCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(t => t.stop());
+            }
+
+            const constraints = {
+                video: {
+                    facingMode: usingBackCamera ? "environment" : "user"
+                },
+                audio: false
+            };
+
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = currentStream;
+
+            } catch (err) {
+                alert("Camera Error: " + err);
+                console.error(err);
+            }
+        }
+
+        startCamera();
+
+        // Switch camera
+        switchBtn.addEventListener("click", () => {
+            usingBackCamera = !usingBackCamera;
+            startCamera();
+        });
+
+        // Capture photo
+        captureBtn.addEventListener("click", () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0);
+
+            const dataURL = canvas.toDataURL("image/jpeg");
+
+            // show preview
+            const img = document.createElement("img");
+            img.src = dataURL;
+            document.getElementById("preview").appendChild(img);
+
+            // send to backend
+            fetch("/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ image: dataURL })
+            });
+        });
+    </script>
+
+</body>
+
+</html>
