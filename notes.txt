@@ -16,6 +16,8 @@ a. Enable Google Drive API
 5. Download the JSON key file (service_account.json).
 
 b. Install Require Python Library
+   py -m pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+
 
 
 

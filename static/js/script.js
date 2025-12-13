@@ -40,18 +40,33 @@ function setupAddBox(box) {
 }
 
 // ---------- Create image preview ----------
-function createImagePreview(src) {
+function createImagePreview(src, index) {
     const imgBox = document.createElement("div");
     imgBox.classList.add("image-preview-box");
-    imgBox.innerHTML = `<img src="${src}" alt="Captured Image">`;
+    imgBox.style.position = "relative";
 
+    imgBox.innerHTML = `
+        <span class="delete-img-btn">&times;</span>
+        <img src="${src}" alt="Captured Image">
+    `;
+
+    // Insert before last + box
     const lastAddBox = imageContainer.querySelector(".add-image-box:last-child");
     if (lastAddBox) {
         imageContainer.insertBefore(imgBox, lastAddBox);
     } else {
         imageContainer.appendChild(imgBox);
     }
+
+    // Delete button event
+    imgBox.querySelector(".delete-img-btn").addEventListener("click", () => {
+        imgBox.remove();
+
+        // Also remove from your capturedFiles array
+        capturedFiles = capturedFiles.filter(f => f.previewSrc !== src);
+    });
 }
+
 
 // ---------- Add new + box ----------
 function addNewAddBox() {
