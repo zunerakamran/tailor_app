@@ -8,10 +8,8 @@
 
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <!-- Link external CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
 </head>
 
 <body>
@@ -29,7 +27,7 @@
                 <div class="row mb-4">
                     <div class="col-md-4 mb-2">
                         <div class="view-order-info-label"><i class="bi bi-person-fill"></i> Name</div>
-                        <div class="view-order-info-value">{{ order.customer_name }}</div>
+                        <div class="view-order-info-value">{{ order.name }}</div>
                     </div>
                     <div class="col-md-4 mb-2">
                         <div class="view-order-info-label"><i class="bi bi-telephone-fill"></i> Phone</div>
@@ -59,17 +57,21 @@
                     </div>
                 </div>
 
-                <!-- Order Image -->
-                <h5 class="view-order-section-title">Order Image</h5>
-                {% if order.image %}
-                <div class="mb-4">
-                    <a href="{{ url_for('static', filename='uploads/' ~ order.image) }}" target="_blank">
-                        <img src="{{ url_for('static', filename='uploads/' ~ order.image) }}" class="view-order-image">
+                <!-- Order Images -->
+                <h5 class="view-order-section-title">Order Images</h5>
+                {% if images and images|length > 0 %}
+                <div class="mb-4 order-images-grid">
+                    {% for img in images %}
+                    <a href="{{ url_for('static', filename='uploads/' ~ img) }}" target="_blank">
+                        <img src="{{ url_for('static', filename='uploads/' ~ img) }}" class="view-order-image mb-3"
+                            alt="Order Image">
                     </a>
+                    {% endfor %}
                 </div>
                 {% else %}
-                <p>No image available.</p>
+                <p>No images available.</p>
                 {% endif %}
+
 
                 <!-- Notes -->
                 <h5 class="view-order-section-title">Notes</h5>

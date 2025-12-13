@@ -34,12 +34,12 @@ db = SQLAlchemy(app)
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)       # #ID
     date = db.Column(db.DateTime, default=datetime.utcnow)  # Date
-    customer_name = db.Column(db.String(50), nullable=False)  # Customer Name
+    name = db.Column(db.String(50), nullable=False)  # Customer Name
     phone = db.Column(db.String(20), nullable=False)  # Phone
     address = db.Column(db.String(100), nullable=False)  # Address
     order_for = db.Column(db.String(50), nullable=False)  # Order For
     order_type = db.Column(db.String(50), nullable=False)  # Order Type
-    image = db.Column(db.Text) 
+    details = db.Column(db.Text) 
     notes = db.Column(db.String(200))  # Notes
 
     def __repr__(self):
@@ -98,11 +98,14 @@ def compress_to_webp(image_file, output_path, max_size_kb=200):
 @app.route('/')
 def home():
     orders = Order.query.all() 
-    return render_template('home.html', orders=orders)
+    for order in orders:
+        if order.details:
+            order.images_list = json.loads(order.details)
+            order.last_image = order.images_list[-1] if order.images_list else None
+        else:
+            order.last_image = None
 
-@app.route('/test')
-def test():
-    return render_template('test.html')
+    return render_template('home.html', orders=orders)
 
 @app.route('/add_order', methods=['GET', 'POST'])
 def add_order():
@@ -136,17 +139,17 @@ def add_order():
                 save_path = os.path.join(UPLOAD_FOLDER, filename)
 
                 compress_to_webp(image_file, save_path)
-                image_paths.append(save_path)
+                image_paths.append(filename)
                     
 
         # # Create new order object
         new_order = Order(
-            customer_name=customer_name,
+            name=name,
             phone=phone,
             address=address,
             order_for=order_for,
             order_type=order_type,
-            image=json.dumps(image_paths),
+            details=json.dumps(image_paths),
             notes=notes
         )
 
@@ -161,9 +164,30 @@ def add_order():
 @app.route('/view_order/<int:order_id>')
 def view_order(order_id):
     order = Order.query.get_or_404(order_id)
-    return render_template('view_order.html', order=order)
+    images = json.loads(order.details) if order.details else []
+    return render_template('view_order.html', order=order, images=images)
+
+@app.route('/delete_order/<int:order_id>')
+def delete_order(order_id):
+    order = Order.query.get_or_404(order_id)
+    try:
+        # Optionally, delete associated images from 'uploads' folder
+        if order.details:
+            images = json.loads(order.details) 
+            for img in images:
+                image_path = os.path.join(app.root_path, 'static', 'uploads', img)
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+
+        db.session.delete(order)
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+
+    return redirect(url_for('home'))
 
 if __name__ == '__main__':
     # app.run(debug=True)
     # app.run(host='0.0.0.0', port=5000, ssl_context='adhoc')
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)

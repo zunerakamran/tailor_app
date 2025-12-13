@@ -18,10 +18,65 @@ body {
 }
 
 .home-order-image {
-    height: 100px;
-    width: 100px;
+    width: 105px;
+    height: 110px;
     object-fit: cover;
-    cursor: pointer;
+    border-radius: 12px;
+    transition: transform 0.2s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.home-order-image:hover {
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+
+    .table-responsive {
+        overflow-x: hidden !important;
+    }
+
+    table {
+        border: 0;
+    }
+
+    thead {
+        display: none;
+    }
+
+    tbody,
+    tr,
+    td {
+        display: block;
+        width: 100%;
+    }
+
+    tr {
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        background: #fff;
+    }
+
+    td {
+        border: none !important;
+        padding: 6px 0;
+    }
+
+    td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        display: block;
+        color: #666;
+        font-size: 0.85rem;
+    }
+
+    /* Actions row */
+    td:last-child {
+        margin-top: 10px;
+        text-align: right;
+    }
 }
 
 /* Add Order Page Styling */
@@ -79,7 +134,7 @@ body {
     position: absolute;
     top: 4px;
     right: 4px;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0, 0, 0, 0.6);
     color: white;
     width: 18px;
     height: 18px;
@@ -177,4 +232,42 @@ body {
     padding: 15px;
     border-radius: 10px;
 
+}
+
+/* Grid container for order images */
+.order-images-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px; /* space between images */
+    margin-bottom: 20px;
+}
+
+/* Each image link inside the grid */
+.order-images-grid a {
+    display: inline-block;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.order-images-grid a:hover {
+    transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .order-images-grid a {
+        width: calc(50% - 10px); /* 2 images per row on tablet */
+    }
+}
+
+@media (max-width: 576px) {
+    .order-images-grid a {
+        width: 100%; /* 1 image per row on mobile */
+    }
+
+    .view-order-image {
+        width: 100%;
+        height: auto;
+    }
 }

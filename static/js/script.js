@@ -7,6 +7,7 @@ const cameraStream = document.getElementById("camera-stream");
 const captureBtn = document.getElementById("capture-btn");
 const closeCameraBtn = document.getElementById("close-camera");
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+const mode = imageContainer?.dataset.mode || "multiple";
 const capturedFiles = []
 let stream = null;
 let webcamOpen = false;
@@ -50,18 +51,26 @@ function createImagePreview(src, index) {
         <img src="${src}" alt="Captured Image">
     `;
 
-    // Insert before last + box
-    const lastAddBox = imageContainer.querySelector(".add-image-box:last-child");
-    if (lastAddBox) {
-        imageContainer.insertBefore(imgBox, lastAddBox);
-    } else {
+    if (mode === "single") {
+        // 🔴 HOME PAGE behavior
         imageContainer.appendChild(imgBox);
+        addBtn.style.display = "none"; // hide +
+    } else {
+        // 🟢 ADD ORDER behavior
+        const lastAddBox = imageContainer.querySelector(".add-image-box:last-child");
+        if (lastAddBox) {
+            imageContainer.insertBefore(imgBox, lastAddBox);
+        } else {
+            imageContainer.appendChild(imgBox);
+        }
     }
 
     // Delete button event
     imgBox.querySelector(".delete-img-btn").addEventListener("click", () => {
         imgBox.remove();
-
+        if (mode === "single") {
+            addBtn.style.display = "flex"; // show + again
+        }
         // Also remove from your capturedFiles array
         capturedFiles = capturedFiles.filter(f => f.previewSrc !== src);
     });
@@ -69,15 +78,15 @@ function createImagePreview(src, index) {
 
 
 // ---------- Add new + box ----------
-function addNewAddBox() {
-    const newBox = document.createElement("label");
-    newBox.classList.add("add-image-box");
-    newBox.innerHTML = `<span class="plus-icon">+</span>
-        <input type="file" accept="image/*" capture="environment" multiple style="display:none;">`;
+// function addNewAddBox() {
+//     const newBox = document.createElement("label");
+//     newBox.classList.add("add-image-box");
+//     newBox.innerHTML = `<span class="plus-icon">+</span>
+//         <input type="file" accept="image/*" capture="environment" multiple style="display:none;">`;
 
-    imageContainer.appendChild(newBox);
-    setupAddBox(newBox);
-}
+//     imageContainer.appendChild(newBox);
+//     setupAddBox(newBox);
+// }
 
 // ---------- Initialize first box ----------
 if (isMobile) {
