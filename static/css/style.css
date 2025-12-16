@@ -30,54 +30,16 @@ body {
     transform: scale(1.05);
 }
 
-@media (max-width: 768px) {
-
-    .table-responsive {
-        overflow-x: hidden !important;
-    }
-
-    table {
-        border: 0;
-    }
-
-    thead {
-        display: none;
-    }
-
-    tbody,
-    tr,
-    td {
-        display: block;
-        width: 100%;
-    }
-
-    tr {
-        margin-bottom: 1rem;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 10px;
-        background: #fff;
-    }
-
-    td {
-        border: none !important;
-        padding: 6px 0;
-    }
-
-    td::before {
-        content: attr(data-label);
-        font-weight: 600;
-        display: block;
-        color: #666;
-        font-size: 0.85rem;
-    }
-
-    /* Actions row */
-    td:last-child {
-        margin-top: 10px;
-        text-align: right;
-    }
+.mobile-order-view {
+    display: block !important;
+    padding: 10px;
+    width: 100%;
+    background: #f0f0f0;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 8px;
 }
+
 
 /* Add Order Page Styling */
 .add-order-header {
@@ -238,7 +200,8 @@ body {
 .order-images-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px; /* space between images */
+    gap: 15px;
+    /* space between images */
     margin-bottom: 20px;
 }
 
@@ -257,13 +220,15 @@ body {
 /* Responsive adjustments */
 @media (max-width: 992px) {
     .order-images-grid a {
-        width: calc(50% - 10px); /* 2 images per row on tablet */
+        width: calc(50% - 10px);
+        /* 2 images per row on tablet */
     }
 }
 
 @media (max-width: 576px) {
     .order-images-grid a {
-        width: 100%; /* 1 image per row on mobile */
+        width: 100%;
+        /* 1 image per row on mobile */
     }
 
     .view-order-image {

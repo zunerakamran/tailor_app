@@ -44,7 +44,11 @@
                 <div class="row mb-4">
                     <div class="col-md-6 mb-2">
                         <div class="view-order-info-label"><i class="bi bi-gift-fill"></i> Order For</div>
-                        <div class="view-order-info-value">{{ order.order_for }}</div>
+                        <div class="view-order-info-value">
+                            <span class="badge bg-info text-white py-1 px-2 fs-6">
+                                {{ order.order_for }}
+                            </span>
+                        </div>
                     </div>
                     <div class="col-md-6 mb-2">
                         <div class="view-order-info-label"><i class="bi bi-card-checklist"></i> Order Type</div>
@@ -60,18 +64,22 @@
                 <!-- Order Images -->
                 <h5 class="view-order-section-title">Order Images</h5>
                 {% if images and images|length > 0 %}
-                <div class="mb-4 order-images-grid">
-                    {% for img in images %}
-                    <a href="{{ url_for('static', filename='uploads/' ~ img) }}" target="_blank">
-                        <img src="{{ url_for('static', filename='uploads/' ~ img) }}" class="view-order-image mb-3"
-                            alt="Order Image">
-                    </a>
-                    {% endfor %}
-                </div>
+                    <div class="mb-4 d-flex flex-wrap gap-3">
+                        {% for img in images %}
+                            <div class="position-relative text-center">
+                                <a href="{{ url_for('static', filename='uploads/' ~ img.path) }}" target="_blank">
+                                    <img src="{{ url_for('static', filename='uploads/' ~ img.path) }}" class="view-order-image img-fluid rounded" alt="Order Image">
+                                    <!-- Date overlay -->
+                                    <span class="position-absolute top-0 start-0 m-2 badge bg-dark text-white">
+                                        {{ img.uploaded_at_formatted }}
+                                    </span>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
                 {% else %}
-                <p>No images available.</p>
-                {% endif %}
-
+                    <p>No images available.</p>
+               {% endif %}
 
                 <!-- Notes -->
                 <h5 class="view-order-section-title">Notes</h5>

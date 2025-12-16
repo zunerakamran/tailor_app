@@ -97,15 +97,30 @@ def compress_to_webp(image_file, output_path, max_size_kb=200):
 
 @app.route('/')
 def home():
-    orders = Order.query.all() 
+    # Detect if the user is on a mobile device
+    user_agent = request.headers.get("User-Agent", "")
+    is_mobile = "Mobile" in user_agent
+
+    # Fetch all orders
+    orders = Order.query.all()
+
+    # Process images for each order
     for order in orders:
         if order.details:
-            order.images_list = json.loads(order.details)
-            order.last_image = order.images_list[-1] if order.images_list else None
+            try:
+                order.images_list = json.loads(order.details)  # Load JSON array of images
+                order.last_image = order.images_list[-1]['path'] if order.images_list else None
+            except (ValueError, KeyError, TypeError):
+                order.images_list = []
+                order.last_image = None
         else:
+            order.images_list = []
             order.last_image = None
 
-    return render_template('home.html', orders=orders)
+    # Render the appropriate template
+    template = "home_mobile.html" if is_mobile else "home.html"
+    return render_template(template, orders=orders)
+
 
 @app.route('/add_order', methods=['GET', 'POST'])
 def add_order():
@@ -126,7 +141,7 @@ def add_order():
 
         # Handle multiple image uploads
         images = request.files.getlist('images[]')
-        image_paths = []
+        image_details = []
 
         # for image_file in images:
         #     if image_file and image_file.filename != '':
@@ -139,7 +154,10 @@ def add_order():
                 save_path = os.path.join(UPLOAD_FOLDER, filename)
 
                 compress_to_webp(image_file, save_path)
-                image_paths.append(filename)
+                image_details.append({
+                    "path": filename,
+                    "uploaded_at": datetime.now().isoformat()
+                })
                     
 
         # # Create new order object
@@ -149,7 +167,7 @@ def add_order():
             address=address,
             order_for=order_for,
             order_type=order_type,
-            details=json.dumps(image_paths),
+            details=json.dumps(image_details),
             notes=notes
         )
 
@@ -157,15 +175,30 @@ def add_order():
         db.session.add(new_order)
         db.session.commit()
 
-        return {"success": True, "uploaded": len(image_paths)}
+        return {"success": True, "uploaded": len(image_details)}
 
     return render_template('add_order.html')
 
 @app.route('/view_order/<int:order_id>')
 def view_order(order_id):
     order = Order.query.get_or_404(order_id)
+    
+    # Load images from JSON
     images = json.loads(order.details) if order.details else []
-    return render_template('view_order.html', order=order, images=images)
+
+    # Sort images by uploaded_at descending (recent first)
+    images_sorted = sorted(
+        images,
+        key=lambda x: datetime.fromisoformat(x['uploaded_at']),
+        reverse=True
+    )
+
+    # Add a formatted date for display
+    for img in images_sorted:
+        dt = datetime.fromisoformat(img['uploaded_at'])
+        img['uploaded_at_formatted'] = dt.strftime('%d-%m-%Y')  # Example format
+
+    return render_template('view_order.html', order=order, images=images_sorted)
 
 @app.route('/delete_order/<int:order_id>')
 def delete_order(order_id):
