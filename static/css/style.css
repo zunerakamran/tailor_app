@@ -7,7 +7,9 @@ body {
     background-color: #f8f9fa;
 }
 
+
 /* Home Page styling */
+
 .home-top-bar {
     margin-bottom: 20px;
 }
@@ -42,6 +44,7 @@ body {
 
 
 /* Add Order Page Styling */
+
 .add-order-header {
     background-color: var(--theme-color) !important;
     color: white;
@@ -67,7 +70,8 @@ body {
 }
 
 .add-image-box,
-.image-preview-box {
+.image-preview-box,
+.image-preview-box-update {
     width: 100px;
     height: 100px;
     border: 2px dashed #17a2b8;
@@ -86,10 +90,12 @@ body {
     color: #17a2b8;
 }
 
-.image-preview-box img {
+.image-preview-box img,
+.image-preview-box-update img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 .delete-img-btn {
@@ -142,7 +148,9 @@ body {
     cursor: pointer;
 }
 
+
 /* View Order page Styling */
+
 .view-order-card {
     border-radius: 15px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
@@ -193,10 +201,11 @@ body {
     border-left: 5px solid var(--theme-color);
     padding: 15px;
     border-radius: 10px;
-
 }
 
+
 /* Grid container for order images */
+
 .order-images-grid {
     display: flex;
     flex-wrap: wrap;
@@ -205,7 +214,9 @@ body {
     margin-bottom: 20px;
 }
 
+
 /* Each image link inside the grid */
+
 .order-images-grid a {
     display: inline-block;
     border-radius: 12px;
@@ -217,7 +228,9 @@ body {
     transform: scale(1.05);
 }
 
+
 /* Responsive adjustments */
+
 @media (max-width: 992px) {
     .order-images-grid a {
         width: calc(50% - 10px);
@@ -230,7 +243,6 @@ body {
         width: 100%;
         /* 1 image per row on mobile */
     }
-
     .view-order-image {
         width: 100%;
         height: auto;

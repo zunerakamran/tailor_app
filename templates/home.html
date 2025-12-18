@@ -1,157 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Tailor Orders</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icon CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <!-- Link external CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-</head>
-
-<body>
-
-    <div class="container mt-4">
-        <!-- Top Bar -->
-        <div class="d-flex justify-content-between align-items-center home-top-bar">
-            <a href="/add_order" class="btn add-order-btn">+ Add Order</a>
-
-            <form class="d-flex w-50" action="#">
-                <input class="form-control me-2" type="search" placeholder="Search by name and phone">
-                <button class="btn add-order-btn" type="submit">Search</button>
-            </form>
-        </div>
-
-        <!-- Orders Table -->
-        {% if orders %}
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered align-middle">
-                <thead class="home-table-header">
-                    <tr>
-                        <th>ID</th>
-                        <th>Date</th>
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Order For</th>
-                        <th>Order Type</th>
-                        <th>Details</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% for order in orders %}
-                    <tr>
-                        <td>{{ order.id }}</td>
-                        <td>{{ order.date.strftime('%d-%m-%Y') }}</td>
-                        <td>{{ order.name }}</td>
-                        <td>{{ order.phone }}</td>
-                        <td>{{ order.order_for }}</td>
-                        <td>{{ order.order_type }}</td>
-
-                        <td>
-                            {% if order.last_image %}
-                            <a href="{{ url_for('static', filename='uploads/' + order.last_image) }}" target="_blank">
-                                <img src="{{ url_for('static', filename='uploads/' + order.last_image) }}"
-                                    class="home-order-image">
-                            </a>
-                            {% else %}
-                            <div id="image-container" class="image-container" data-mode="single">
-                                <!-- First + box with mobile input -->
-                                <label class="add-image-box" id="add-btn">
-                                    <span class="plus-icon">+</span>
-                                </label>
-                            </div>
-                            {% endif %}
-                        </td>
-
-                        <td>
-                            <!-- View -->
-                            <a href="{{ url_for('view_order', order_id=order.id) }}"
-                                class="btn btn-sm btn-outline-primary mb-1" title="View Order">
-                                <i class="bi bi-eye"></i>
-                            </a>
-
-                            <!-- Edit -->
-                            <a href="/edit_order/{{ order.id }}" class="btn btn-sm btn-outline-success mb-1"
-                                title="Edit Order">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-
-                            <!-- Delete -->
-                            <button type="button" class="btn btn-sm btn-outline-danger mb-1" data-bs-toggle="modal"
-                                data-bs-target="#deleteModal{{ order.id }}">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <!-- Delete Confirmation Modal -->
-                    <div class="modal fade" id="deleteModal{{ order.id }}" tabindex="-1"
-                        aria-labelledby="deleteModalLabel{{ order.id }}" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content rounded-3 shadow-sm">
-                                <div class="modal-header border-0 bg-danger">
-                                    <h5 class="modal-title text-white" id="deleteModalLabel{{ order.id }}">
-                                        Confirm Delete
-                                    </h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                        aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body d-flex justify-content-center align-items-center"
-                                    style="height: 100px;">
-                                    Are you sure you want to delete order {{order.id}}?
-                                </div>
-                                <div class="modal-footer justify-content-center border-0 pb-4">
-                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
-                                        data-bs-dismiss="modal">Cancel</button>
-                                    <a href="/delete_order/{{ order.id }}"
-                                        class="btn btn-danger rounded-pill px-4">Delete</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <p class="text-muted">No orders found.</p>
-        {% endif %}
-
-        <!-- Webcam modal for desktop -->
-        <div id="camera-modal" class="camera-modal" style="display:none;">
-            <video id="camera-stream" autoplay playsinline muted></video>
-            <div class="camera-controls">
-                <button id="capture-btn" type="button">Capture</button>
-                <button id="close-camera" type="button">Close</button>
+    <head>
+        <meta charset="UTF-8">
+        <title>Tailor Orders</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- Bootstrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+              rel="stylesheet">
+        <!-- Bootstrap Icon CDN -->
+        <link rel="stylesheet"
+              href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+        <!-- Link external CSS -->
+        <link rel="stylesheet"
+              href="{{ url_for('static', filename='css/style.css') }}">
+    </head>
+    <body>
+        <div class="container mt-4">
+            <!-- Top Bar -->
+            <div class="d-flex justify-content-between align-items-center home-top-bar">
+                <a href="/add_order" class="btn add-order-btn">+ Add Order</a>
+                <form class="d-flex w-50" action="#">
+                    <input class="form-control me-2"
+                           type="search"
+                           placeholder="Search by name and phone">
+                    <button class="btn add-order-btn" type="submit">Search</button>
+                </form>
             </div>
-        </div>
-
-        <!-- Image Modal -->
-        <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content">
-                    <div class="modal-body p-0">
-                        <img src="" id="modalImage" class="img-fluid w-100">
+            <!-- Orders Table -->
+            {% if orders %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered align-middle">
+                        <thead class="home-table-header">
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Order For</th>
+                                <th>Order Type</th>
+                                <th>Details</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                                <tr>
+                                    <td>{{ order.id }}</td>
+                                    <td>{{ order.date.strftime("%d-%m-%Y") }}</td>
+                                    <td>{{ order.name }}</td>
+                                    <td>{{ order.phone }}</td>
+                                    <td>{{ order.order_for }}</td>
+                                    <td>{{ order.order_type }}</td>
+                                    <td>
+                                        {% if order.last_image %}
+                                            <a href="{{ url_for('static', filename='uploads/' + order.last_image) }}"
+                                               target="_blank">
+                                                <img src="{{ url_for('static', filename='uploads/' + order.last_image) }}"
+                                                     class="home-order-image">
+                                            </a>
+                                        {% else %}
+                                            <div id="image-container" class="image-container" data-mode="single">
+                                                <!-- First + box with mobile input -->
+                                                <label class="add-image-box" id="add-btn">
+                                                    <span class="plus-icon">+</span>
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <!-- View -->
+                                        <a href="{{ url_for('view_order', order_id=order.id) }}"
+                                           class="btn btn-sm btn-outline-primary mb-1"
+                                           title="View Order">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <!-- Edit -->
+                                        <a href="{{ url_for('update_order', order_id=order.id) }}"
+                                           class="btn btn-sm btn-outline-success mb-1"
+                                           title="Edit Order">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <!-- Delete -->
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger mb-1"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteModal{{ order.id }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade"
+                                     id="deleteModal{{ order.id }}"
+                                     tabindex="-1"
+                                     aria-labelledby="deleteModalLabel{{ order.id }}"
+                                     aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content rounded-3 shadow-sm">
+                                            <div class="modal-header border-0 bg-danger">
+                                                <h5 class="modal-title text-white" id="deleteModalLabel{{ order.id }}">Confirm Delete</h5>
+                                                <button type="button"
+                                                        class="btn-close btn-close-white"
+                                                        data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body d-flex justify-content-center align-items-center"
+                                                 style="height: 100px">
+                                                Are you sure you want to delete order {{ order.id }}?
+                                            </div>
+                                            <div class="modal-footer justify-content-center border-0 pb-4">
+                                                <button type="button"
+                                                        class="btn btn-outline-secondary rounded-pill px-4"
+                                                        data-bs-dismiss="modal">Cancel</button>
+                                                <a href="{{ url_for('delete_order', order_id=order.id) }}"
+                                                   class="btn btn-danger rounded-pill px-4">Delete</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No orders found.</p>
+            {% endif %}
+            <!-- Webcam modal for desktop -->
+            <div id="camera-modal" class="camera-modal" style="display:none;">
+                <video id="camera-stream" autoplay playsinline muted>
+                </video>
+                <div class="camera-controls">
+                    <button id="capture-btn" type="button">Capture</button>
+                    <button id="close-camera" type="button">Close</button>
+                </div>
+            </div>
+            <!-- Image Modal -->
+            <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-body p-0">
+                            <img src="" id="modalImage" class="img-fluid w-100">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-    </div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Link external JS -->
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
-</body>
-
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Link external JS -->
+        <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    </body>
 </html>

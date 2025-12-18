@@ -132,13 +132,6 @@ def add_order():
         order_type = request.form.get('order_type')
         notes = request.form.get('notes')
 
-        print("Customer Name:", name)
-        print("Phone:", phone)
-        print("Address:", address)
-        print("Order For:", order_for)
-        print("Order Type:", order_type)
-        print("Notes:", notes)
-
         # Handle multiple image uploads
         images = request.files.getlist('images[]')
         image_details = []
@@ -219,6 +212,98 @@ def delete_order(order_id):
         db.session.rollback()
 
     return redirect(url_for('home'))
+
+@app.route('/update_order/<int:order_id>', methods=['GET', 'POST'])
+def update_order(order_id):
+    order = Order.query.get_or_404(order_id)
+
+    if request.method == 'POST':
+
+        # 1️⃣ Images stored in DB
+        previous_images = json.loads(order.details) if order.details else []
+
+        # 2️⃣ Images user kept (same schema as DB, JSON strings)
+        kept_images_raw = request.form.getlist('kept_images[]')
+
+        # Convert JSON strings → dicts
+        kept_images = [json.loads(img) for img in kept_images_raw]
+
+        # Extract paths for comparison
+        kept_image_paths = [img['path'] for img in kept_images]
+
+        # 3️⃣ Newly uploaded images
+        new_images = request.files.getlist('newImages[]')
+
+        # 🔐 SAFETY GUARD
+        if not kept_image_paths:
+            kept_image_paths = [img['path'] for img in previous_images]
+            kept_images = previous_images
+
+        updated_images = []
+
+        # 4️⃣ Delete removed images from disk
+        for img in previous_images:
+            if img['path'] not in kept_image_paths:
+                file_path = os.path.join(UPLOAD_FOLDER, img['path'])
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+
+        # 5️⃣ Keep existing images (uploaded_at unchanged)
+        for img in previous_images:
+            if img['path'] in kept_image_paths:
+                updated_images.append(img)
+
+        # 6️⃣ Add new images (same logic as ADD ORDER)
+        for image_file in new_images:
+            if image_file and image_file.filename != '':
+
+                filename = image_file.filename.rsplit('.', 1)[0] + ".webp"
+                save_path = os.path.join(UPLOAD_FOLDER, filename)
+
+                compress_to_webp(image_file, save_path)
+
+                updated_images.append({
+                    "path": filename,
+                    "uploaded_at": datetime.now().isoformat()
+                })
+
+        # 7️⃣ Save updated images
+        order.details = json.dumps(updated_images)
+
+        # 8️⃣ Update other fields
+        order.name = request.form.get('name')
+        order.phone = request.form.get('phone')
+        order.address = request.form.get('address')
+        order.order_for = request.form.get('order_for')
+        order.order_type = request.form.get('order_type')
+        order.notes = request.form.get('notes')
+
+        db.session.commit()
+        return redirect(url_for('view_order', order_id=order.id))
+
+    # ============================
+    # GET REQUEST
+    # ============================
+
+    images = json.loads(order.details) if order.details else []
+
+    images_sorted = sorted(
+        images,
+        key=lambda x: datetime.fromisoformat(x['uploaded_at']),
+        reverse=True
+    )
+
+    for img in images_sorted:
+        img['uploaded_at_formatted'] = datetime.fromisoformat(
+            img['uploaded_at']
+        ).strftime('%d-%m-%Y')
+
+    return render_template(
+        'update_order.html',
+        order=order,
+        images=images_sorted
+    )
+
 
 if __name__ == '__main__':
     # app.run(debug=True)

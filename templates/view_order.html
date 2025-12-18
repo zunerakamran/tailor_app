@@ -1,97 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order #{{ order.id }} Details</title>
-
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Link external CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-
-<body>
-
-    <div class="container py-5">
-
-        <div class="card view-order-card">
-            <div class="card-header view-order-card-header">
-                Order Details
-            </div>
-            <div class="card-body p-4">
-
-                <!-- Customer Info -->
-                <h5 class="view-order-section-title">Customer Information</h5>
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-2">
-                        <div class="view-order-info-label"><i class="bi bi-person-fill"></i> Name</div>
-                        <div class="view-order-info-value">{{ order.name }}</div>
-                    </div>
-                    <div class="col-md-4 mb-2">
-                        <div class="view-order-info-label"><i class="bi bi-telephone-fill"></i> Phone</div>
-                        <div class="view-order-info-value">{{ order.phone }}</div>
-                    </div>
-                    <div class="col-md-4 mb-2">
-                        <div class="view-order-info-label"><i class="bi bi-geo-alt-fill"></i> Address</div>
-                        <div class="view-order-info-value">{{ order.address }}</div>
-                    </div>
-                </div>
-
-                <!-- Order Info -->
-                <h5 class="view-order-section-title">Order Information</h5>
-                <div class="row mb-4">
-                    <div class="col-md-6 mb-2">
-                        <div class="view-order-info-label"><i class="bi bi-gift-fill"></i> Order For</div>
-                        <div class="view-order-info-value">
-                            <span class="badge bg-info text-white py-1 px-2 fs-6">
-                                {{ order.order_for }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <div class="view-order-info-label"><i class="bi bi-card-checklist"></i> Order Type</div>
-                        <div class="view-order-info-value">
-                            <span class="badge bg-info text-white py-1 px-2 fs-6">
-                                {{ order.order_type }}
-                            </span>
-
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Images -->
-                <h5 class="view-order-section-title">Order Images</h5>
-                {% if images and images|length > 0 %}
-                    <div class="mb-4 d-flex flex-wrap gap-3">
-                        {% for img in images %}
-                            <div class="position-relative text-center">
-                                <a href="{{ url_for('static', filename='uploads/' ~ img.path) }}" target="_blank">
-                                    <img src="{{ url_for('static', filename='uploads/' ~ img.path) }}" class="view-order-image img-fluid rounded" alt="Order Image">
-                                    <!-- Date overlay -->
-                                    <span class="position-absolute top-0 start-0 m-2 badge bg-dark text-white">
-                                        {{ img.uploaded_at_formatted }}
-                                    </span>
-                                </a>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Order #{{ order.id }} Details</title>
+        <!-- Bootstrap 5 CDN -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+              rel="stylesheet">
+        <!-- Link external CSS -->
+        <link rel="stylesheet"
+              href="{{ url_for('static', filename='css/style.css') }}">
+    </head>
+    <body>
+        <div class="container py-5">
+            <div class="card view-order-card">
+                <div class="card-header view-order-card-header">Order Details</div>
+                <div class="card-body p-4">
+                    <!-- Customer Info -->
+                    <h5 class="view-order-section-title">Customer Information</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-2">
+                            <div class="view-order-info-label">
+                                <i class="bi bi-person-fill"></i> Name
                             </div>
-                        {% endfor %}
+                            <div class="view-order-info-value">{{ order.name }}</div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="view-order-info-label">
+                                <i class="bi bi-telephone-fill"></i> Phone
+                            </div>
+                            <div class="view-order-info-value">{{ order.phone }}</div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="view-order-info-label">
+                                <i class="bi bi-geo-alt-fill"></i> Address
+                            </div>
+                            <div class="view-order-info-value">{{ order.address }}</div>
+                        </div>
                     </div>
-                {% else %}
-                    <p>No images available.</p>
-               {% endif %}
-
-                <!-- Notes -->
-                <h5 class="view-order-section-title">Notes</h5>
-                <div class="view-order-notes-box">
-                    {{ order.notes or 'No notes provided.' }}
+                    <!-- Order Info -->
+                    <h5 class="view-order-section-title">Order Information</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-2">
+                            <div class="view-order-info-label">
+                                <i class="bi bi-gift-fill"></i> Order For
+                            </div>
+                            <div class="view-order-info-value">
+                                <span class="badge bg-info text-white py-1 px-2 fs-6">{{ order.order_for }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="view-order-info-label">
+                                <i class="bi bi-card-checklist"></i> Order Type
+                            </div>
+                            <div class="view-order-info-value">
+                                <span class="badge bg-info text-white py-1 px-2 fs-6">{{ order.order_type }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Order Images -->
+                    <h5 class="view-order-section-title">Order Images</h5>
+                    {% if images and images|length > 0 %}
+                        <div class="mb-4 d-flex flex-wrap gap-3">
+                            {% for img in images %}
+                                <div class="position-relative text-center">
+                                    <a href="{{ url_for('static', filename='uploads/' ~ img.path) }}"
+                                       target="_blank">
+                                        <img src="{{ url_for('static', filename='uploads/' ~ img.path) }}"
+                                             class="view-order-image img-fluid rounded"
+                                             alt="Order Image">
+                                        <!-- Date overlay -->
+                                        <span class="position-absolute top-0 start-0 m-2 badge bg-dark text-white">{{ img.uploaded_at_formatted }}</span>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No images available.</p>
+                    {% endif %}
+                    <!-- Notes -->
+                    <h5 class="view-order-section-title">Notes</h5>
+                    <div class="view-order-notes-box">{{ order.notes or 'No notes provided.' }}</div>
                 </div>
-
             </div>
         </div>
-
-    </div>
-
-</body>
-
+    </body>
 </html>

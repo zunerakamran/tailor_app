@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Update Order</title>
+
+    <meta name="description" content="Update customer order details">
+    <meta name="keywords" content="tailor, update order, tailoring management">
+
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="bg-light">
+    <div class="container mt-5 mb-5">
+        <div class="card shadow-sm">
+            <div class="card-header add-order-header">
+                <h4 class="mb-0">Update Order</h4>
+            </div>
+
+            <div class="card-body">
+                <form action="/update_order/{{order.id}}" method="POST" enctype="multipart/form-data" id="update-order-form">
+                    <!-- Customer Name + Phone -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Customer Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="Enter Customer Name" value="{{ order.name }}" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Customer Phone Number</label>
+                            <input type="text" name="phone" class="form-control" placeholder="Enter Customer Phone Number" value="{{ order.phone }}" required>
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="mb-3">
+                        <label class="form-label">Customer Address</label>
+                        <input type="text" name="address" class="form-control" placeholder="Enter Customer Address" value="{{ order.address }}" required>
+                    </div>
+
+                    <!-- Order For + Order Type -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Order For</label>
+                            <input type="text" name="order_for" class="form-control" value="{{ order.order_for }}" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Order Type</label>
+                            <select name="order_type" class="form-select" required>
+                                {% for type in [
+                                    'Shalwar Kameez',
+                                    'Pant Coat',
+                                    'Shirt',
+                                    'Pant',
+                                    'Waistcoat',
+                                    'Shairwani'
+                                ] %}
+                                    <option
+                                        value="{{ type }}"
+                                        {% if order.order_type == type %}selected{% endif %}
+                                    >
+                                        {{ type }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Image Capture -->
+                    <div class="mb-3">
+                        <label class="form-label">Details</label>
+                        <div id="image-container" class="image-container" data-images='{{images|tojson}}' data-mode="multiple">
+                            {% if images %} {% for image in images %}
+                            <div class="image-preview-box-update" id="image-preview-box-update" style="position: relative;">
+                                <span class="delete-img-btn">&times;</span>
+                                <img src="{{ url_for('static', filename='uploads/' + image.path) }}" alt="Captured Image">
+                            </div>
+                            {% endfor %} {% endif %}
+                            <label class="add-image-box" id="add-btn">
+                                <span class="plus-icon">+</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Webcam Modal -->
+                    <div id="camera-modal" class="camera-modal" style="display:none;">
+                        <video id="camera-stream" autoplay playsinline muted></video>
+                            <div class="camera-controls">
+                                <button id="capture-btn" type="button">Capture</button>
+                                <button id="close-camera" type="button">Close</button>
+                            </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="4" placeholder="Enter additional information">{{ order.notes }}</textarea>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn w-100 add-order-btn">
+                        Update Order
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- External JS -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>

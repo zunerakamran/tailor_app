@@ -1,3 +1,53 @@
+document.addEventListener("DOMContentLoaded", () => {
+    const imageContainerBox = document.getElementById("image-container");
+    const updateOrderForm= document.getElementById("update-order-form");
+    if (!imageContainerBox) return;
+
+    // Get previous images from data attribute
+    const keptImages = JSON.parse(imageContainerBox.dataset.images || "[]");
+
+    // Optional: attach delete functionality
+    imageContainerBox.addEventListener("click", (e) => {
+        if (e.target.classList.contains("delete-img-btn")) {
+            const imgDiv = e.target.parentElement;
+            imgDiv.remove();
+
+            // Update the JS array if needed
+            const imgEl = imgDiv.querySelector("img");
+            const index = keptImages.findIndex(i => i.path === imgEl.src.split("/uploads/")[1]);
+            if (index > -1) keptImages.splice(index, 1);
+
+            // Update data attribute if needed
+            imageContainerBox.dataset.images = JSON.stringify(keptImages);
+        }
+    });
+
+    updateOrderForm.addEventListener('submit', async(e)=>{
+        e.preventDefault()
+        const formData= new FormData(updateOrderForm)
+        keptImages.forEach(imgObj => {
+            formData.append("kept_images[]", JSON.stringify(imgObj));
+        });
+        capturedFiles.forEach(file => formData.append("newImages[]", file));
+        
+        const res = await fetch(updateOrderForm.action, {
+            method: updateOrderForm.method, // POST
+            body: formData
+        });
+
+        // Manually follow Flask redirect
+        if (res.redirected) {
+            window.location.href = res.url;
+        } else if (res.ok) {
+        // optional: reload page or show success message
+            window.location.reload();
+        } else {
+            console.error("Update failed");
+        }
+    })
+});
+
+
 const addOrderForm = document.getElementById("add-order-form")
 const imageContainer = document.getElementById("image-container");
 const addBtn = document.getElementById("add-btn");
@@ -7,7 +57,7 @@ const cameraStream = document.getElementById("camera-stream");
 const captureBtn = document.getElementById("capture-btn");
 const closeCameraBtn = document.getElementById("close-camera");
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-const mode = imageContainer?.dataset.mode || "multiple";
+const mode = imageContainer ?.dataset.mode || "multiple";
 const capturedFiles = []
 let stream = null;
 let webcamOpen = false;
@@ -137,7 +187,7 @@ closeCameraBtn.addEventListener("click", () => {
     webcamOpen = false;
 });
 
-addOrderForm.addEventListener("submit", async (e) => {
+addOrderForm.addEventListener("submit", async(e) => {
     e.preventDefault();
 
     const formData = new FormData(addOrderForm);
@@ -151,6 +201,5 @@ addOrderForm.addEventListener("submit", async (e) => {
     const data = await res.json();
     console.log("Form submission response:", data);
 });
-
 
 
