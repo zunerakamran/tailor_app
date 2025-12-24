@@ -1,9 +1,11 @@
+let orderId;
 document.addEventListener("DOMContentLoaded", () => {
     const imageContainerBox = document.getElementById("image-container");
     const updateOrderForm= document.getElementById("update-order-form");
     if (!imageContainerBox) return;
-
-    // Get previous images from data attribute
+    //get id of order for home page
+    orderId= imageContainer.dataset.id
+    // Get previous images from data attribute for update page
     const keptImages = JSON.parse(imageContainerBox.dataset.images || "[]");
 
     // Optional: attach delete functionality
@@ -35,11 +37,9 @@ document.addEventListener("DOMContentLoaded", () => {
             body: formData
         });
 
-        // Manually follow Flask redirect
         if (res.redirected) {
             window.location.href = res.url;
         } else if (res.ok) {
-        // optional: reload page or show success message
             window.location.reload();
         } else {
             console.error("Update failed");
@@ -62,7 +62,6 @@ const capturedFiles = []
 let stream = null;
 let webcamOpen = false;
 
-// ---------- Unified function to handle + boxes ----------
 function setupAddBox(box) {
     const input = box.querySelector("input");
 
@@ -91,22 +90,44 @@ function setupAddBox(box) {
 }
 
 // ---------- Create image preview ----------
-function createImagePreview(src, index) {
-    const imgBox = document.createElement("div");
-    imgBox.classList.add("image-preview-box");
-    imgBox.style.position = "relative";
-
-    imgBox.innerHTML = `
-        <span class="delete-img-btn">&times;</span>
-        <img src="${src}" alt="Captured Image">
-    `;
+async function createImagePreview(src, index) {
 
     if (mode === "single") {
         // 🔴 HOME PAGE behavior
+        const file = capturedFiles[0];
+        const formData = new FormData();
+        formData.append("order_id", orderId);
+        formData.append("image", file); 
+
+        try {
+            const res = await fetch("/update_image", {
+                method: "POST",
+                body: formData
+            });
+            if (res.ok) {
+                window.location.reload(); // ✅ faster, no redirect processing
+            } else {
+                console.error("Update failed");
+            }
+
+        } catch (err) {
+            console.error("API error:", err);
+        }
         imageContainer.appendChild(imgBox);
-        addBtn.style.display = "none"; // hide +
+        addBtn.style.display = "none";
+        if (stream) stream.getTracks().forEach(t => t.stop());
+            cameraModal.style.display = "none";
+            webcamOpen = false;
     } else {
         // 🟢 ADD ORDER behavior
+        const imgBox = document.createElement("div");
+        imgBox.classList.add("image-preview-box");
+        imgBox.style.position = "relative";
+
+        imgBox.innerHTML = `
+            <span class="delete-img-btn">&times;</span>
+            <img src="${src}" alt="Captured Image">
+        `;
         const lastAddBox = imageContainer.querySelector(".add-image-box:last-child");
         if (lastAddBox) {
             imageContainer.insertBefore(imgBox, lastAddBox);

@@ -304,6 +304,33 @@ def update_order(order_id):
         images=images_sorted
     )
 
+@app.route("/update_image", methods=["POST"])
+def update_image():
+    order_id = request.form.get("order_id")
+    image_file = request.files.get("image")
+
+    if not image_file:
+        return {"success": False, "error": "No image provided"}, 400
+
+    filename = image_file.filename.rsplit(".", 1)[0] + ".webp"
+    save_path = os.path.join(UPLOAD_FOLDER, filename)
+
+    compress_to_webp(image_file, save_path)
+
+    order = Order.query.get(order_id)
+    if not order:
+        return {"success": False, "error": "Order not found"}, 404
+
+    images = [{
+        "path": filename,
+        "uploaded_at": datetime.now().isoformat()
+    }]
+
+    # Save to database
+    order.details = json.dumps(images)
+    db.session.commit()
+
+    return redirect(url_for('home'))
 
 if __name__ == '__main__':
     # app.run(debug=True)
