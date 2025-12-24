@@ -1,5 +1,35 @@
 let orderId;
 document.addEventListener("DOMContentLoaded", () => {
+    //search order
+    const input = document.getElementById("searchOrderInput");
+    const table = document.getElementById("ordersTable");
+    const tbody = table.querySelector("tbody");
+    const rows = tbody.getElementsByTagName("tr");
+    const noRecordsRow = document.getElementById("noRecordsRow");
+
+    input.addEventListener("input", function() {  // triggers on typing or clearing
+        const filter = input.value.toLowerCase();
+        let visibleCount = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            // Skip the "No records" row
+            if (rows[i].id === "noRecordsRow") continue;
+
+            const nameCell = rows[i].cells[2].textContent.toLowerCase();
+            const phoneCell = rows[i].cells[3].textContent.toLowerCase();
+
+            if (nameCell.includes(filter) || phoneCell.includes(filter)) {
+                rows[i].style.display = "";
+                visibleCount++;
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
+
+        // Show "No records found" if no rows are visible
+        noRecordsRow.style.display = visibleCount === 0 ? "" : "none";
+    });
+    
     const imageContainerBox = document.getElementById("image-container");
     const updateOrderForm= document.getElementById("update-order-form");
     if (!imageContainerBox) return;
@@ -47,10 +77,9 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 });
 
-
 const addOrderForm = document.getElementById("add-order-form")
 const imageContainer = document.getElementById("image-container");
-const addBtn = document.getElementById("add-btn");
+const addBtn = document.getElementById('add-btn');
 const mobileFileInput = document.getElementById("mobile-file-input");
 const cameraModal = document.getElementById("camera-modal");
 const cameraStream = document.getElementById("camera-stream");
@@ -58,7 +87,7 @@ const captureBtn = document.getElementById("capture-btn");
 const closeCameraBtn = document.getElementById("close-camera");
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 const mode = imageContainer ?.dataset.mode || "multiple";
-const capturedFiles = []
+let capturedFiles = []
 let stream = null;
 let webcamOpen = false;
 
@@ -90,7 +119,7 @@ function setupAddBox(box) {
 }
 
 // ---------- Create image preview ----------
-async function createImagePreview(src, index) {
+async function createImagePreview(src, fileName) {
 
     if (mode === "single") {
         // 🔴 HOME PAGE behavior
@@ -113,7 +142,6 @@ async function createImagePreview(src, index) {
         } catch (err) {
             console.error("API error:", err);
         }
-        imageContainer.appendChild(imgBox);
         addBtn.style.display = "none";
         if (stream) stream.getTracks().forEach(t => t.stop());
             cameraModal.style.display = "none";
@@ -134,32 +162,18 @@ async function createImagePreview(src, index) {
         } else {
             imageContainer.appendChild(imgBox);
         }
+        // Delete button event
+        imgBox.querySelector(".delete-img-btn").addEventListener("click", () => {
+            imgBox.remove();
+            if (mode === "single") {
+                addBtn.style.display = "flex"; // show + again
+            }
+            // Also remove from your capturedFiles array
+            capturedFiles = capturedFiles.filter(f => f.name !== fileName);
+        });
     }
-
-    // Delete button event
-    imgBox.querySelector(".delete-img-btn").addEventListener("click", () => {
-        imgBox.remove();
-        if (mode === "single") {
-            addBtn.style.display = "flex"; // show + again
-        }
-        // Also remove from your capturedFiles array
-        capturedFiles = capturedFiles.filter(f => f.previewSrc !== src);
-    });
 }
 
-
-// ---------- Add new + box ----------
-// function addNewAddBox() {
-//     const newBox = document.createElement("label");
-//     newBox.classList.add("add-image-box");
-//     newBox.innerHTML = `<span class="plus-icon">+</span>
-//         <input type="file" accept="image/*" capture="environment" multiple style="display:none;">`;
-
-//     imageContainer.appendChild(newBox);
-//     setupAddBox(newBox);
-// }
-
-// ---------- Initialize first box ----------
 if (isMobile) {
     const mobileInput = document.createElement("input");
     mobileInput.type = "file";
@@ -197,8 +211,10 @@ captureBtn.addEventListener("click", () => {
     canvas.getContext("2d").drawImage(cameraStream, 0, 0);
 
     canvas.toBlob(blob => {
-        capturedFiles.push(new File([blob], `webcam-${Date.now()}.png`, { type: "image/png" }));
-        createImagePreview(URL.createObjectURL(blob));
+        const file = new File([blob], `webcam-${Date.now()}.png`, { type: "image/png" });
+        file.previewSrc = URL.createObjectURL(blob); // ✅ attach manually
+        capturedFiles.push(file);
+        createImagePreview(URL.createObjectURL(blob), file.name);
     }, "image/png");
 });
 
@@ -219,8 +235,13 @@ addOrderForm.addEventListener("submit", async(e) => {
         body: formData
     });
 
-    const data = await res.json();
-    console.log("Form submission response:", data);
+    if (res.redirected) {
+        window.location.href = res.url;
+    } else if (res.ok) {
+        window.location.reload();
+    } else {
+        console.error("Update failed");
+    }
 });
 
 

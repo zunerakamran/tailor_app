@@ -121,7 +121,6 @@ def home():
     template = "home_mobile.html" if is_mobile else "home.html"
     return render_template(template, orders=orders)
 
-
 @app.route('/add_order', methods=['GET', 'POST'])
 def add_order():
     if request.method == 'POST':
@@ -168,7 +167,7 @@ def add_order():
         db.session.add(new_order)
         db.session.commit()
 
-        return {"success": True, "uploaded": len(image_details)}
+        return redirect(url_for('view_order', order_id=new_order.id))
 
     return render_template('add_order.html')
 
@@ -201,7 +200,7 @@ def delete_order(order_id):
         if order.details:
             images = json.loads(order.details) 
             for img in images:
-                image_path = os.path.join(app.root_path, 'static', 'uploads', img)
+                image_path = os.path.join(app.root_path, 'static', 'uploads', img['path'])
                 if os.path.exists(image_path):
                     os.remove(image_path)
 
@@ -219,41 +218,23 @@ def update_order(order_id):
 
     if request.method == 'POST':
 
-        # 1️⃣ Images stored in DB
         previous_images = json.loads(order.details) if order.details else []
-
-        # 2️⃣ Images user kept (same schema as DB, JSON strings)
-        kept_images_raw = request.form.getlist('kept_images[]')
-
-        # Convert JSON strings → dicts
-        kept_images = [json.loads(img) for img in kept_images_raw]
-
-        # Extract paths for comparison
-        kept_image_paths = [img['path'] for img in kept_images]
-
-        # 3️⃣ Newly uploaded images
         new_images = request.files.getlist('newImages[]')
 
-        # 🔐 SAFETY GUARD
-        if not kept_image_paths:
-            kept_image_paths = [img['path'] for img in previous_images]
-            kept_images = previous_images
+        kept_images_raw = request.form.getlist('kept_images[]')
+        kept_images = [json.loads(img) for img in kept_images_raw]
+        kept_paths = [img['path'] for img in kept_images]
 
         updated_images = []
 
-        # 4️⃣ Delete removed images from disk
-        for img in previous_images:
-            if img['path'] not in kept_image_paths:
-                file_path = os.path.join(UPLOAD_FOLDER, img['path'])
+        for previousImg in previous_images:
+            if previousImg['path'] not in kept_paths:
+                file_path = os.path.join(UPLOAD_FOLDER, previousImg['path'])
                 if os.path.exists(file_path):
                     os.remove(file_path)
+            else:
+                updated_images.append(previousImg)
 
-        # 5️⃣ Keep existing images (uploaded_at unchanged)
-        for img in previous_images:
-            if img['path'] in kept_image_paths:
-                updated_images.append(img)
-
-        # 6️⃣ Add new images (same logic as ADD ORDER)
         for image_file in new_images:
             if image_file and image_file.filename != '':
 
@@ -267,10 +248,7 @@ def update_order(order_id):
                     "uploaded_at": datetime.now().isoformat()
                 })
 
-        # 7️⃣ Save updated images
         order.details = json.dumps(updated_images)
-
-        # 8️⃣ Update other fields
         order.name = request.form.get('name')
         order.phone = request.form.get('phone')
         order.address = request.form.get('address')

@@ -20,12 +20,11 @@
             <!-- Top Bar -->
             <div class="d-flex justify-content-between align-items-center home-top-bar">
                 <a href="/add_order" class="btn add-order-btn">+ Add Order</a>
-                <form class="d-flex w-50" action="#">
-                    <input class="form-control me-2"
-                           type="search"
-                           placeholder="Search by name and phone">
-                    <button class="btn add-order-btn" type="submit">Search</button>
-                </form>
+                <input class="form-control me-2 d-flex w-50"
+                    id="searchOrderInput"
+                    type="search"
+                    name="search_order"
+                    placeholder="Search by name or phone">
             </div>
             <!-- Orders Table -->
             {% if orders %}
@@ -64,7 +63,7 @@
                                      class="home-order-image">
                             </a>
                         {% else %}
-                            <div id="image-container" class="image-container" data-mode="single">
+                            <div id="image-container" class="image-container" data-mode="single" data-id='{{order.id}}'>
                                 <!-- First + box with mobile input -->
                                 <label class="add-image-box" id="add-btn">
                                     <span class="plus-icon">+</span>
