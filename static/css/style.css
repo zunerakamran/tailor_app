@@ -63,7 +63,7 @@ body {
     transition: transform 0.2s ease, border 0.2s ease, color 0.2s ease;
 }
 
-.image-container {
+.image-container, .image-container-box {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;

@@ -25,7 +25,7 @@
             </div>
 
             <div class="card-body">
-                <form action="/update_order/{{order.id}}" method="POST" enctype="multipart/form-data" id="update-order-form">
+                <form action="/update_order/{{order.id}}" method="POST" enctype="multipart/form-data" id="update-order-form" data-id="{{order.id}}">
                     <!-- Customer Name + Phone -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -77,14 +77,14 @@
                     <!-- Image Capture -->
                     <div class="mb-3">
                         <label class="form-label">Details</label>
-                        <div id="image-container" class="image-container" data-images='{{images|tojson}}' data-mode="multiple">
+                        <div id="image-container-{{order.id}}" class="image-container" data-images='{{images|tojson}}' data-mode="multiple" data-id="{{order.id}}">
                             {% if images %} {% for image in images %}
-                            <div class="image-preview-box-update" id="image-preview-box-update" style="position: relative;">
+                            <div class="image-preview-box-update" id="image-preview-box-update" style="position: relative;" data-images='{{images|tojson}}'>
                                 <span class="delete-img-btn">&times;</span>
                                 <img src="{{ url_for('static', filename='uploads/' + image.path) }}" alt="Captured Image">
                             </div>
                             {% endfor %} {% endif %}
-                            <label class="add-image-box" id="add-btn">
+                            <label class="add-image-box" id="add-btn-{{order.id}}">
                                 <span class="plus-icon">+</span>
                             </label>
                         </div>

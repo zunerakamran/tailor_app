@@ -58,9 +58,9 @@
                                                      class="home-order-image">
                                             </a>
                                         {% else %}
-                                            <div id="image-container" class="image-container" data-mode="single" data-id='{{order.id}}'>
+                                            <div id="image-container-{{order.id}}" class="image-container" data-mode="single" data-id='{{order.id}}'>
                                                 <!-- First + box with mobile input -->
-                                                <label class="add-image-box" id="add-btn">
+                                                <label class="add-image-box" id="add-btn-{{order.id}}">
                                                     <span class="plus-icon">+</span>
                                                 </label>
                                             </div>
