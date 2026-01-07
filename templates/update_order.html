@@ -18,14 +18,20 @@
 </head>
 
 <body class="bg-light">
-    <div class="container mt-5 mb-5">
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+    </div>
+    <div class="container mt-4 mb-5">
+        <div class="d-flex justify-content-between align-items-center home-top-bar">
+            <a href="{{ url_for('home') }}" class="btn add-order-btn" id="back-home-btn">Back to Home</a>
+        </div>
         <div class="card shadow-sm">
             <div class="card-header add-order-header">
                 <h4 class="mb-0">Update Order</h4>
             </div>
 
             <div class="card-body">
-                <form action="/update_order/{{order.id}}" method="POST" enctype="multipart/form-data" id="update-order-form" data-id="{{order.id}}">
+                <form action="{{ url_for('update_order', order_id=order.id) }}" method="POST" enctype="multipart/form-data" id="update-order-form" data-id="{{order.id}}">
                     <!-- Customer Name + Phone -->
                     <div class="row">
                         <div class="col-md-6 mb-3">

@@ -12,13 +12,19 @@
               href="{{ url_for('static', filename='css/style.css') }}">
     </head>
     <body class="bg-light">
-        <div class="container mt-5 mb-5">
+        <div id="loader-overlay">
+            <div class="spinner"></div>
+        </div>
+        <div class="container mt-4 mb-5">
+            <div class="d-flex justify-content-between align-items-center home-top-bar">
+                <a href="{{ url_for('home') }}" class="btn add-order-btn" id="back-home-btn">Back to Home</a>
+            </div>
             <div class="card shadow-sm">
                 <div class="card-header add-order-header">
                     <h4 class="mb-0">Add New Order</h4>
                 </div>
                 <div class="card-body">
-                    <form action="/add_order"
+                    <form action="{{ url_for('add_order') }}"
                           method="POST"
                           enctype="multipart/form-data"
                           id="add-order-form">

@@ -7,9 +7,28 @@ body {
     background-color: #f8f9fa;
 }
 
+#loader-overlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    backdrop-filter:blur(2px);
+    z-index:9999;
+    justify-content:center;
+    align-items:center;
+}
+
+.spinner {
+    width:50px;
+    height:50px;
+    border:6px solid #ddd;
+    border-top-color:#000;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
 
 /* Home Page styling */
-
 .home-top-bar {
     margin-bottom: 20px;
 }

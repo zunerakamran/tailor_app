@@ -5,31 +5,34 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Tailor Orders</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!-- Bootstrap 5 CSS -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
               rel="stylesheet">
-        <!-- Bootstrap Icon CDN -->
         <link rel="stylesheet"
               href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-        <!-- Link external CSS -->
         <link rel="stylesheet"
               href="{{ url_for('static', filename='css/style.css') }}">
     </head>
     <body>
+        <div id="loader-overlay">
+            <div class="spinner"></div>
+        </div>
         <div class="container mt-4">
-            <!-- Top Bar -->
             <div class="d-flex justify-content-between align-items-center home-top-bar">
-                <a href="/add_order" class="btn add-order-btn">+ Add Order</a>
+                <a href="{{ url_for('add_order') }}" class="btn add-order-btn">+ Add Order</a>
                 <input class="form-control me-2 d-flex w-50"
-                    id="searchOrderInput"
+                    id="searchOrderInputMobile"
                     type="search"
                     name="search_order"
                     placeholder="Search by name or phone">
             </div>
-            <!-- Orders Table -->
+            <p id="noResultsMessage" class="text-muted text-center mt-3" style="display: none;">
+                No orders found.
+            </p>
+
             {% if orders %}
                 {% for order in orders %}
-                    <div class="container mobile-order-view">
+                <div class="order-item" data-name="{{ order.name | lower }}" data-phone="{{ order.phone }}">
+                    <div class="container mobile-order-view ">
                         <div class="row d-flex justify-content-between align-items-center mb-3">
                             <div class="col-auto">
                                 <h6>
@@ -64,7 +67,6 @@
                             </a>
                         {% else %}
                             <div id="image-container-{{order.id}}" class="image-container" data-mode="single" data-id='{{order.id}}'>
-                                <!-- First + box with mobile input -->
                                 <label class="add-image-box" id="add-btn-{{order.id}}">
                                     <span class="plus-icon">+</span>
                                 </label>
@@ -73,19 +75,16 @@
                     </div>
                     <div class="container mobile-order-view">
                         <div class="text-end">
-                            <!-- View -->
                             <a href="{{ url_for('view_order', order_id=order.id) }}"
                                class="btn btn-sm btn-outline-primary mb-1"
                                title="View Order">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <!-- Edit -->
                             <a href="{{ url_for('update_order', order_id=order.id) }}"
                                class="btn btn-sm btn-outline-success mb-1"
                                title="Edit Order">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <!-- Delete -->
                             <button type="button"
                                     class="btn btn-sm btn-outline-danger mb-1"
                                     data-bs-toggle="modal"
@@ -94,41 +93,63 @@
                             </button>
                         </div>
                     </div>
-                    <!-- Delete Confirmation Modal -->
-                    <div class="modal fade"
-                         id="deleteModal{{ order.id }}"
-                         tabindex="-1"
-                         aria-labelledby="deleteModalLabel{{ order.id }}"
-                         aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content rounded-3 shadow-sm">
-                                <div class="modal-header border-0 bg-danger">
-                                    <h5 class="modal-title text-white" id="deleteModalLabel{{ order.id }}">Confirm Delete</h5>
-                                    <button type="button"
-                                            class="btn-close btn-close-white"
-                                            data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body d-flex justify-content-center align-items-center"
-                                     style="height: 100px">Are you sure you want to delete order {{ order.id }}?</div>
-                                <div class="modal-footer justify-content-center border-0 pb-4">
-                                    <button type="button"
-                                            class="btn btn-outline-secondary rounded-pill px-4"
-                                            data-bs-dismiss="modal">Cancel</button>
-                                    <a href="{{ url_for('delete_order', order_id=order.id) }}"
-                                       class="btn btn-danger rounded-pill px-4">Delete</a>
-                                </div>
+                </div>
+                <div class="modal fade"
+                    id="deleteModal{{ order.id }}"
+                    tabindex="-1"
+                    aria-labelledby="deleteModalLabel{{ order.id }}"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-3 shadow-sm">
+                            <div class="modal-header border-0 bg-danger">
+                                <h5 class="modal-title text-white" id="deleteModalLabel{{ order.id }}">Confirm Delete</h5>
+                                <button type="button"
+                                    class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body d-flex justify-content-center align-items-center"style="height: 100px">
+                                Are you sure you want to delete order {{ order.id }}?
+                            </div>
+                            <div class="modal-footer justify-content-center border-0 pb-4">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                <a href="{{ url_for('delete_order', order_id=order.id) }}" class="btn btn-danger rounded-pill px-4" onclick="showLoader()">Delete</a>
                             </div>
                         </div>
                     </div>
+                </div>
                 {% endfor %}
             {% else %}
                 <p class="text-muted">No orders found.</p>
             {% endif %}
         </div>
-        <!-- Bootstrap JS -->
+        <script>
+            const searchInputMobile = document.getElementById("searchOrderInputMobile");
+            const orders = document.querySelectorAll(".order-item");
+
+            searchInputMobile.addEventListener("input", function () {
+            const query = searchInputMobile.value.toLowerCase().trim();
+            let visibleCount = 0;
+            orders.forEach(order => {
+                const name = order.getAttribute("data-name");
+                const phone = order.getAttribute("data-phone");
+
+                if (name.includes(query) || phone.includes(query)) {
+                    order.style.display = "block";
+                    visibleCount++;
+                } else {
+                    order.style.display = "none";
+                }
+                if (visibleCount === 0) {
+                    noResultsMessage.style.display = "block";
+                } else {
+                    noResultsMessage.style.display = "none";
+                }
+            });
+        });
+        const updateImageUrl = "{{ url_for('update_image') }}";
+        </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- Link external JS -->
         <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     </body>
 </html>

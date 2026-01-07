@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     updateOrderForm.addEventListener('submit', async(e)=>{
         e.preventDefault()
+        showLoader()
         const formData= new FormData(updateOrderForm)
         keptImages.forEach(imgObj => {
             formData.append("kept_images[]", JSON.stringify(imgObj));
@@ -8,15 +9,18 @@ document.addEventListener("DOMContentLoaded", () => {
         capturedFiles.forEach(file => formData.append("newImages[]", file));
 
         const res = await fetch(updateOrderForm.action, {
-            method: updateOrderForm.method, // POST
+            method: updateOrderForm.method, 
             body: formData
         });
 
         if (res.redirected) {
+            hideLoader()
             window.location.href = res.url;
         } else if (res.ok) {
+            hideLoader()
             window.location.reload();
         } else {
+            hideLoader()
             console.error("Update failed");
         }
     })
@@ -24,7 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let orderId, imageContainer, addBtn, mode;
 let keptImages= []
-//add order details
 const addOrderForm = document.getElementById("add-order-form")
 const updateOrderForm= document.getElementById("update-order-form");
 const mobileFileInput = document.getElementById("mobile-file-input");
@@ -60,7 +63,6 @@ Array.from(imageConatinerByClass).forEach(container => {
 
 const imagePreviewBoxes = document.getElementsByClassName('image-preview-box-update');
 Array.from(imagePreviewBoxes).forEach(box => {
-    // Optional: store keptImages per container if needed
      keptImages = JSON.parse(box.dataset.images || "[]");
 
     const deleteBtn = box.querySelector(".delete-img-btn");
@@ -79,7 +81,6 @@ Array.from(imagePreviewBoxes).forEach(box => {
 
         console.log("Updated keptImages:", keptImages);
 
-        // Update dataset of parent container
         const parentContainer = imgDiv.closest(".image-container");
         parentContainer.dataset.images = JSON.stringify(keptImages);
     });
@@ -88,12 +89,10 @@ Array.from(imagePreviewBoxes).forEach(box => {
 function setupAddBox(box) {
     const input = box.querySelector("input");
     if (isMobile) {
-
-        // Handle file selection
         input.addEventListener("change", () => {
             if (!input.files) return;
             Array.from(input.files).forEach(file => {
-                capturedFiles.push(file); // store file
+                capturedFiles.push(file); 
                 const reader = new FileReader();
                 reader.onload = ev => createImagePreview(ev.target.result);
                 reader.readAsDataURL(file);
@@ -105,36 +104,40 @@ function setupAddBox(box) {
     }
 }
 
-// ---------- Create image preview ----------
 async function createImagePreview(src, fileName) {
 
     if (mode === "single") {
-        // 🔴 HOME PAGE behavior
         const file = capturedFiles[0];
         const formData = new FormData();
         formData.append("order_id", orderId);
-        formData.append("image", file); 
-
+        formData.append("image", file);
+        if(!isMobile){
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            cameraModal.style.display = "none";
+            webcamOpen = false;
+        }
         try {
-            const res = await fetch("/update_image", {
+            showLoader();   
+            const res = await fetch(updateImageUrl, {
                 method: "POST",
                 body: formData
             });
+
             if (res.ok) {
-                window.location.reload(); // ✅ faster, no redirect processing
+                hideLoader()
+                window.location.reload(); 
             } else {
                 console.error("Update failed");
+                hideLoader();  
             }
 
         } catch (err) {
             console.error("API error:", err);
+            hideLoader();
         }
         addBtn.style.display = "none";
-        if (stream) stream.getTracks().forEach(t => t.stop());
-            cameraModal.style.display = "none";
-            webcamOpen = false;
-    } else {
-        // 🟢 ADD ORDER behavior
+    }
+    else {
         const imgBox = document.createElement("div");
         imgBox.classList.add("image-preview-box");
         imgBox.style.position = "relative";
@@ -149,23 +152,19 @@ async function createImagePreview(src, fileName) {
         } else {
             imageContainer.appendChild(imgBox);
         }
-        // Delete button event
         imgBox.querySelector(".delete-img-btn").addEventListener("click", (e) => {
-            e.stopPropagation(); //remove parent click functionality
+            e.stopPropagation(); 
             imgBox.remove();
             if (mode === "single") {
                 addBtn.style.display = "flex"; 
             }
-            // Also remove from your capturedFiles array
             capturedFiles = capturedFiles.filter(f => f.name !== fileName);
         });
     }
 }
 
-// ---------- Desktop webcam functions ----------
 async function openWebcam() {
     if (stream) stream.getTracks().forEach(t => t.stop());
-
     try {
         webcamOpen = true;
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
@@ -189,7 +188,7 @@ captureBtn.addEventListener("click", () => {
 
     canvas.toBlob(blob => {
         const file = new File([blob], `webcam-${Date.now()}.png`, { type: "image/png" });
-        file.previewSrc = URL.createObjectURL(blob); // ✅ attach manually
+        file.previewSrc = URL.createObjectURL(blob);
         capturedFiles.push(file);
         createImagePreview(URL.createObjectURL(blob), file.name);
     }, "image/png");
@@ -203,7 +202,7 @@ closeCameraBtn.addEventListener("click", () => {
 
 addOrderForm.addEventListener("submit", async(e) => {
     e.preventDefault();
-
+    showLoader()
     const formData = new FormData(addOrderForm);
     capturedFiles.forEach(file => formData.append("images[]", file));
     
@@ -213,38 +212,23 @@ addOrderForm.addEventListener("submit", async(e) => {
     });
 
     if (res.redirected) {
+        hideLoader()
         window.location.href = res.url;
     } else if (res.ok) {
+        hideLoader()
         window.location.reload();
     } else {
+        hideLoader()
         console.error("Update failed");
     }
 });
 
-//search order
-const searchInput = document.getElementById("searchOrderInput");
-const searchTable = document.getElementById("ordersTable");
-const searchTbody = searchTable.querySelector("tbody");
-const searchRows = searchTbody.getElementsByTagName("tr");
-const noRecordsRow = document.getElementById("noRecordsRow");
-
-//search order functionality
-searchInput.addEventListener("input", function() {  // triggers on typing or clearing
-    const filter = searchInput.value.toLowerCase();
-    let visibleCount = 0;
-
-    for (let i = 0; i < searchRows.length; i++) {
-        // Skip the "No records" row
-        if (searchRows[i].id === "noRecordsRow") continue;
-        const nameCell = searchRows[i].cells[2].textContent.toLowerCase();
-        const phoneCell = searchRows[i].cells[3].textContent.toLowerCase();
-        if (nameCell.includes(filter) || phoneCell.includes(filter)) {
-            searchRows[i].style.display = "";
-            visibleCount++;
-        } else {
-            searchRows[i].style.display = "none";
-        }
-    }
-    // Show "No records found" if no rows are visible
-    noRecordsRow.style.display = visibleCount === 0 ? "" : "none";
-});
+function showLoader() {
+    document.getElementById("loader-overlay").style.display = "flex";
+    setTimeout(() => {
+        hideLoader();
+    }, 120000);
+}
+function hideLoader() {
+    document.getElementById("loader-overlay").style.display = "none";
+}
