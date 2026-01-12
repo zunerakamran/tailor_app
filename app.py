@@ -5,18 +5,21 @@ from PIL import Image
 import os
 import json
 from io import BytesIO
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(basedir, 'static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'orders.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
 class Order(db.Model):
+    __tablename__ = "orders"
     id = db.Column(db.Integer, primary_key=True)       
     date = db.Column(db.DateTime, default=datetime.utcnow)  
     name = db.Column(db.String(50), nullable=False)  

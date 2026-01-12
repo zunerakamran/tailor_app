@@ -1,3 +1,4 @@
+pymysql
 Flask
 Flask-SQLAlchemy
 Pillow
