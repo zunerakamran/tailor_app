@@ -1,0 +1,66 @@
+FileNotFoundError: [Errno 2] No such file or directory: '/home/devznrepats/tailor/passenger_wsgi.py'
+FileNotFoundError: [Errno 2] No such file or directory: '/home/devznrepats/tailor/passenger_wsgi.py'
+FileNotFoundError: [Errno 2] No such file or directory: '/home/devznrepats/tailor/passenger_wsgi.py'
+FileNotFoundError: [Errno 2] No such file or directory: '/home/devznrepats/tailor/passenger_wsgi.py'
+FileNotFoundError: [Errno 2] No such file or directory: '/home/devznrepats/tailor/passenger_wsgi.py'
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] gemini-3.1-flash-lite failed: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently exp
+[ERROR] scan_order_image: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+OSError: LSAPI: File error
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite
+[OCR] gemini-2.5-flash-lite failed: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-
+[OCR] Model used: gemini-3.1-flash-lite

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery - Order #{{ order.order_no }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.jpg') }}" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container-fluid d-flex flex-column justify-content-start align-items-center p-3">
+
+        <!-- Header with Close and Date -->
+        <div class="d-flex justify-content-between w-100 mb-2">
+            <h5 id="imageDate"></h5>
+            <a href="javascript:window.close()" class="btn btn-outline-light">Close</a>
+        </div>
+
+        <!-- Carousel -->
+        <div id="imageCarousel" class="carousel slide" data-bs-ride="false">
+            <div class="carousel-inner">
+
+                {% for img in images %}
+                <div class="carousel-item {% if loop.index0 == start_index %}active{% endif %}"
+                    data-date="{{ img.uploaded_at_formatted }}">
+                    <div style=" text-align: center;">
+                        <img src="{{ url_for('static', filename='uploads/' ~ img.path) }}" class="zoomable-img">
+                    </div>
+
+                </div>
+                {% endfor %}
+
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </button>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            let isPanning = false;
+            let startX = 0, startY = 0;
+            let currentX = 0, currentY = 0;
+            let zoomScale = 2;
+
+            const carouselEl = document.getElementById('imageCarousel');
+            const carousel = new bootstrap.Carousel(carouselEl, { interval: false });
+            const dateEl = document.getElementById('imageDate');
+            const activeSlide = carouselEl.querySelector('.carousel-item.active');
+            if (activeSlide && activeSlide.dataset.date) {
+                dateEl.textContent = activeSlide.dataset.date;
+            }
+
+            carouselEl.addEventListener('slid.bs.carousel', function () {
+                const active = carouselEl.querySelector('.carousel-item.active');
+                if (active && active.dataset.date) {
+                    dateEl.textContent = active.dataset.date;
+                }
+            });
+
+            carouselEl.addEventListener('slid.bs.carousel', function () {
+                const active = carouselEl.querySelector('.carousel-item.active');
+                if (active && active.dataset.date) {
+                    dateEl.textContent = active.dataset.date;
+                }
+            });
+
+            document.querySelectorAll('.zoomable-img').forEach(img => {
+
+                // Double-click to zoom at cursor
+                img.addEventListener('dblclick', function (e) {
+                    e.preventDefault();
+
+                    if (!this.classList.contains('zoomed')) {
+                        this.classList.add('zoomed');
+
+                        // Set transform origin based on click position
+                        const rect = this.getBoundingClientRect();
+                        const x = ((e.clientX - rect.left) / rect.width) * 100;
+                        const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+                        this.style.transformOrigin = `${x}% ${y}%`;
+                        this.style.transform = `scale(${zoomScale})`;
+
+                        currentX = 0;
+                        currentY = 0;
+                    } else {
+                        resetZoom(this);
+                    }
+                });
+
+                // Mouse down = start pan
+                img.addEventListener('mousedown', function (e) {
+                    if (!this.classList.contains('zoomed')) return;
+
+                    isPanning = true;
+                    startX = e.clientX - currentX;
+                    startY = e.clientY - currentY;
+                    this.style.cursor = 'grabbing';
+                });
+
+                // Mouse move = pan
+                img.addEventListener('mousemove', function (e) {
+                    if (!isPanning || !this.classList.contains('zoomed')) return;
+
+                    currentX = e.clientX - startX;
+                    currentY = e.clientY - startY;
+
+                    this.style.transform =
+                        `scale(${zoomScale}) translate(${currentX}px, ${currentY}px)`;
+                });
+
+                // Mouse up / leave = stop pan
+                ['mouseup', 'mouseleave'].forEach(evt => {
+                    img.addEventListener(evt, function () {
+                        isPanning = false;
+                        if (this.classList.contains('zoomed')) {
+                            this.style.cursor = 'grab';
+                        }
+                    });
+                });
+
+                function resetZoom(el) {
+                    el.classList.remove('zoomed');
+                    el.style.transform = 'scale(1)';
+                    el.style.transformOrigin = '50% 50%';
+                    currentX = 0;
+                    currentY = 0;
+                    el.style.cursor = 'zoom-in';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

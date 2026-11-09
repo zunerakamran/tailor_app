@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Order - Textilion</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.jpg') }}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="bg-light">
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+    </div>
+    <div class="container mt-4 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ url_for('home') }}" class="btn back-btn">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-header add-order-header">
+                <h4 class="mb-0">Add New Order</h4>
+            </div>
+            <div class="card-body">
+                <div class="entry-mode-tabs mb-3" role="tablist" aria-label="Order entry mode">
+                    <button type="button" class="entry-mode-tab active" data-entry-mode="manual" id="tab-manual">
+                        <i class="bi bi-pencil-square"></i> Manual
+                    </button>
+                    <button type="button" class="entry-mode-tab" data-entry-mode="ai" id="tab-ai">
+                        <i class="bi bi-stars"></i> AI
+                    </button>
+                </div>
+                <!-- AI Status Banner -->
+                <div id="ai-status-banner"
+                    class="alert alert-info d-none align-items-center justify-content-between mb-3 shadow-sm rounded-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status" id="ai-spinner">
+                            <span class="visually-hidden">Scanning...</span>
+                        </div>
+                        <i class="bi bi-stars text-warning fs-5 d-none" id="ai-stars-icon"></i>
+                        <span id="ai-status-text" class="fw-medium">AI is working... Scanning your order slip
+                            image.</span>
+                    </div>
+                    <button type="button" class="btn-close"
+                        onclick="document.getElementById('ai-status-banner').classList.add('d-none')"></button>
+                </div>
+
+                <form action="{{ url_for('add_order') }}" method="POST" enctype="multipart/form-data"
+                    id="add-order-form" novalidate>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Order Number</label>
+                            <input type="number" name="order_no" class="form-control" placeholder="Enter Order Number"
+                                min="1" step="1" value="{{next_order_no}}" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid order number.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Customer Name</label>
+                            <input type="text" name="name" class="form-control"
+                                placeholder="Enter Customer Name (letters or numbers)"
+                                minlength="1" required>
+                            <div class="invalid-feedback">
+                                Please enter a customer name (letters and numbers allowed).
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Customer Phone Number</label>
+                            <input type="text" name="phone" class="form-control"
+                                placeholder="Enter Customer Phone Number (or -)"
+                                pattern="^(-|(\+92|0)?3\d{9})$">
+                            <div class="invalid-feedback">
+                                Enter a valid Pakistani phone number (e.g. 03001234567 or +923001234567), or -.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Customer Address</label>
+                            <input type="text" name="address" class="form-control"
+                                placeholder="Enter Customer Address (or -)"
+                                pattern="^(-|.{5,})$">
+                            <div class="invalid-feedback">
+                                Address must be at least 5 characters, or use -.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Order For</label>
+                            <input type="text" name="order_for" class="form-control" value="Self" minlength="1"
+                                maxlength="50" required>
+                            <div class="invalid-feedback">
+                                Please enter who this order is for.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Order Type</label>
+                            <select name="order_type" class="form-select" required>
+                                <option value="Shalwar Kameez">Shalwar Kameez</option>
+                                <option value="Pant Coat">Pant Coat</option>
+                                <option value="Shirt">Shirt</option>
+                                <option value="Pant">Pant</option>
+                                <option value="Waistcoat">Waistcoat</option>
+                                <option value="Shairwani">Shairwani</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select an order type.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label mb-0">Details / Order Slip Photos</label>
+                            <span id="ai-autofill-badge"
+                                class="badge bg-primary-subtle text-primary border border-primary-subtle d-none">
+                                <i class="bi bi-stars"></i> AI Auto-Fill Active
+                            </span>
+                        </div>
+                        <div id="image-container-0" class="image-container" data-mode="multiple" data-id="0">
+                            <label class="add-image-box" id="add-btn-0" for="file-input-0" style="cursor: pointer;">
+                                <span class="plus-icon">+</span>
+                                <input type="file" id="file-input-0" class="image-file-input" accept="image/*" multiple
+                                    capture="environment" style="display: none;">
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Webcam modal for desktop -->
+                    <div id="camera-modal" class="camera-modal" style="display:none;">
+                        <video id="camera-stream" autoplay playsinline muted>
+                        </video>
+                        <div class="camera-controls">
+                            <button id="capture-btn" type="button">Capture</button>
+                            <button id="close-camera" type="button">Close</button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="4" placeholder="Enter Additional Information"
+                            maxlength="500"></textarea>
+                    </div>
+                    <button type="submit" class="btn w-100 add-order-btn">
+                        Add Order
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"></script>
+    <script>
+        // Custom validation that works on all devices
+        (function () {
+            'use strict';
+
+            const form = document.getElementById('add-order-form');
+            form.removeAttribute('novalidate');
+
+            form.addEventListener('submit', function (event) {
+                let isValid = true;
+                const inputs = form.querySelectorAll('input, select, textarea');
+
+                // Reset previous validation states
+                inputs.forEach(input => {
+                    input.classList.remove('is-invalid');
+                });
+
+                // Check each required field
+                inputs.forEach(input => {
+                    const value = (input.value || '').trim();
+                    // "-" means unknown / N/A — skip pattern & length checks
+                    if (value === '-') {
+                        return;
+                    }
+
+                    if (input.hasAttribute('required') && !value) {
+                        input.classList.add('is-invalid');
+                        isValid = false;
+                    }
+
+                    // Check pattern validation
+                    if (input.pattern && value) {
+                        const pattern = new RegExp(input.pattern);
+                        if (!pattern.test(value)) {
+                            input.classList.add('is-invalid');
+                            isValid = false;
+                        }
+                    }
+
+                    // Check minlength
+                    if (input.minLength && value && value.length < parseInt(input.minLength)) {
+                        input.classList.add('is-invalid');
+                        isValid = false;
+                    }
+
+                    // Check number min
+                    if (input.type === 'number' && input.min && value) {
+                        if (parseInt(value) < parseInt(input.min)) {
+                            input.classList.add('is-invalid');
+                            isValid = false;
+                        }
+                    }
+                });
+
+                // Check select fields
+                const selects = form.querySelectorAll('select[required]');
+                selects.forEach(select => {
+                    if (!select.value) {
+                        select.classList.add('is-invalid');
+                        isValid = false;
+                    }
+                });
+
+                if (!isValid) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    // Scroll to first error
+                    const firstError = form.querySelector('.is-invalid');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            });
+
+            // Real-time validation on input/change
+            form.querySelectorAll('input, select, textarea').forEach(field => {
+                field.addEventListener('input', function () {
+                    if (this.classList.contains('is-invalid')) {
+                        if (this.validity.valid || (this.value && (!this.hasAttribute('required') || this.value.trim()))) {
+                            this.classList.remove('is-invalid');
+                        }
+                    }
+                });
+
+                field.addEventListener('blur', function () {
+                    const value = (this.value || '').trim();
+                    if (value === '-') {
+                        this.classList.remove('is-invalid');
+                        return;
+                    }
+                    if (this.hasAttribute('required') && !value) {
+                        this.classList.add('is-invalid');
+                    } else if (this.pattern && value) {
+                        const pattern = new RegExp(this.pattern);
+                        if (!pattern.test(value)) {
+                            this.classList.add('is-invalid');
+                        }
+                    } else if (this.minLength && value && value.length < parseInt(this.minLength)) {
+                        this.classList.add('is-invalid');
+                    }
+                });
+            });
+        })();
+    </script>
+    <script>
+        window.scanOrderImageUrl = "{{ url_for('scan_order_image') }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/script.js', v='2.4') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Needs Review - Textilion</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.jpg') }}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="bg-light">
+    <div id="loader-overlay">
+        <div class="bulk-progress-card">
+            <div class="spinner mx-auto mb-3"></div>
+            <h5 id="bulk-progress-title" class="mb-1">Working…</h5>
+            <p id="bulk-progress-detail" class="text-muted mb-3">Please wait</p>
+            <div class="progress bulk-progress-bar-wrap mb-2">
+                <div id="bulk-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                    style="width: 0%"></div>
+            </div>
+            <div class="d-flex justify-content-between small">
+                <span id="bulk-progress-count">0 / 0</span>
+                <span id="bulk-progress-stats" class="text-muted"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <a href="{{ url_for('home') }}" class="btn back-btn">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <a href="{{ url_for('bulk_upload') }}" class="btn add-order-btn">
+                <i class="bi bi-file-earmark-zip me-1"></i> Bulk Upload
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header add-order-header">
+                <h4 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Under Review Orders</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    These orders were saved from bulk upload but still need checking.
+                    Name or phone may show as <strong>-</strong> when AI could not read them (you can keep or edit).
+                    Use <strong>Scan again</strong> to re-run AI.
+                </p>
+
+                <div id="review-status-banner"
+                    class="alert alert-info d-none align-items-center mb-3 shadow-sm rounded-3">
+                    <div class="d-flex align-items-center gap-2 w-100">
+                        <div class="spinner-border spinner-border-sm text-primary d-none" id="review-spinner"></div>
+                        <i class="bi bi-stars text-warning fs-5 d-none" id="review-stars-icon"></i>
+                        <span id="review-status-text" class="fw-medium"></span>
+                    </div>
+                </div>
+
+                {% if orders %}
+                <div class="fw-semibold mb-2">{{ total }} order(s) waiting for review</div>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle bulk-review-table">
+                        <thead class="home-table-header">
+                            <tr>
+                                <th style="width: 90px;">Image</th>
+                                <th style="min-width: 90px;">Order No</th>
+                                <th style="min-width: 140px;">Name</th>
+                                <th style="min-width: 130px;">Phone</th>
+                                <th>Date</th>
+                                <th style="width: 90px;">View / Zoom</th>
+                                <th style="width: 110px;">Scan again</th>
+                            </tr>
+                        </thead>
+                        <tbody id="review-body">
+                            {% for item in orders %}
+                            <tr class="table-warning" data-id="{{ item.id }}">
+                                <td>
+                                    {% if item.image_url %}
+                                    <button type="button" class="bulk-thumb-btn" data-view-src="{{ item.image_url }}"
+                                        title="View image">
+                                        <img src="{{ item.image_url }}" class="bulk-thumb" alt="">
+                                    </button>
+                                    {% else %}
+                                    <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm" data-field="order_no"
+                                        value="{{ item.order_no }}">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm" data-field="name"
+                                        value="{{ item.name or '' }}" placeholder="Name (letters or numbers)">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm" data-field="phone"
+                                        value="{{ item.phone or '' }}" placeholder="Phone">
+                                </td>
+                                <td class="small text-nowrap">{{ item.date }}</td>
+                                <td class="text-center">
+                                    {% if item.image_url %}
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                        data-view-src="{{ item.image_url }}" title="View & zoom image">
+                                        <i class="bi bi-zoom-in"></i>
+                                    </button>
+                                    {% else %}
+                                    <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary scan-again-btn"
+                                        data-order-id="{{ item.id }}" title="Scan image again with AI"
+                                        {% if not item.image_path %}disabled{% endif %}>
+                                        <i class="bi bi-stars"></i> Scan
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" id="save-fixes-btn" class="btn w-100 add-order-btn mt-2">
+                    <i class="bi bi-check2-circle me-1"></i> Save Fixes
+                </button>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
+                    No under-review orders. Everything looks good.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"></script>
+    <script>
+        (function () {
+            const updateUrl = "{{ url_for('bulk_update_orders') }}";
+            const scanUrlFor = (id) => "{{ url_for('needs_review_scan', order_id=999999) }}".replace("999999", id);
+            const homeUrl = "{{ url_for('home') }}";
+
+            function showProgress({ title, detail, current, total, stats }) {
+                const overlay = document.getElementById("loader-overlay");
+                const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+                document.getElementById("bulk-progress-title").textContent = title || "Working…";
+                document.getElementById("bulk-progress-detail").textContent = detail || "Please wait";
+                document.getElementById("bulk-progress-count").textContent = `${current} / ${total}`;
+                document.getElementById("bulk-progress-stats").textContent = stats || "";
+                document.getElementById("bulk-progress-bar").style.width = `${pct}%`;
+                overlay.style.display = "flex";
+            }
+
+            function hideProgress() {
+                document.getElementById("loader-overlay").style.display = "none";
+                document.getElementById("bulk-progress-bar").style.width = "0%";
+            }
+
+            function setBanner(text, alertClass, showSpinner) {
+                const banner = document.getElementById("review-status-banner");
+                const statusText = document.getElementById("review-status-text");
+                const spinner = document.getElementById("review-spinner");
+                const starsIcon = document.getElementById("review-stars-icon");
+                banner.classList.remove("d-none", "alert-danger", "alert-success", "alert-warning", "alert-info");
+                banner.classList.add("d-flex", alertClass);
+                statusText.innerText = text;
+                if (showSpinner) {
+                    spinner.classList.remove("d-none");
+                    starsIcon.classList.add("d-none");
+                } else {
+                    spinner.classList.add("d-none");
+                    starsIcon.classList.remove("d-none");
+                }
+            }
+
+            let viewerScale = 1;
+            let viewerPanX = 0;
+            let viewerPanY = 0;
+            let isPanning = false;
+            let panStartX = 0;
+            let panStartY = 0;
+
+            function applyViewerTransform(img) {
+                img.style.transform = `translate(${viewerPanX}px, ${viewerPanY}px) scale(${viewerScale})`;
+                img.style.cursor = viewerScale > 1 ? "grab" : "zoom-in";
+            }
+
+            function resetViewerZoom(img) {
+                viewerScale = 1;
+                viewerPanX = 0;
+                viewerPanY = 0;
+                applyViewerTransform(img);
+            }
+
+            function openImageViewer(src) {
+                let overlay = document.getElementById("image-viewer-overlay");
+                if (!overlay) {
+                    overlay = document.createElement("div");
+                    overlay.id = "image-viewer-overlay";
+                    overlay.className = "image-viewer-zoomable";
+                    overlay.innerHTML = `
+                        <button type="button" class="image-viewer-close" aria-label="Close">&times;</button>
+                        <div class="image-viewer-toolbar">
+                            <button type="button" class="image-viewer-zoom-btn" data-zoom="out" title="Zoom out">−</button>
+                            <button type="button" class="image-viewer-zoom-btn" data-zoom="reset" title="Reset">100%</button>
+                            <button type="button" class="image-viewer-zoom-btn" data-zoom="in" title="Zoom in">+</button>
+                        </div>
+                        <div class="image-viewer-stage">
+                            <img src="" alt="Full preview" class="image-viewer-img">
+                        </div>
+                        <div class="image-viewer-hint">Scroll to zoom · Drag to pan · Esc to close</div>
+                    `;
+                    document.body.appendChild(overlay);
+
+                    const img = overlay.querySelector(".image-viewer-img");
+                    const resetLabel = overlay.querySelector('[data-zoom="reset"]');
+
+                    function updateResetLabel() {
+                        resetLabel.textContent = Math.round(viewerScale * 100) + "%";
+                    }
+
+                    overlay.addEventListener("click", (e) => {
+                        if (e.target === overlay || e.target.classList.contains("image-viewer-close")) {
+                            overlay.classList.remove("open");
+                            resetViewerZoom(img);
+                            updateResetLabel();
+                        }
+                    });
+
+                    overlay.querySelectorAll(".image-viewer-zoom-btn").forEach(btn => {
+                        btn.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            const action = btn.dataset.zoom;
+                            if (action === "in") {
+                                viewerScale = Math.min(5, viewerScale + 0.25);
+                            } else if (action === "out") {
+                                viewerScale = Math.max(0.5, viewerScale - 0.25);
+                                if (viewerScale <= 1) {
+                                    viewerPanX = 0;
+                                    viewerPanY = 0;
+                                }
+                            } else {
+                                resetViewerZoom(img);
+                            }
+                            applyViewerTransform(img);
+                            updateResetLabel();
+                        });
+                    });
+
+                    overlay.addEventListener("wheel", (e) => {
+                        if (!overlay.classList.contains("open")) return;
+                        e.preventDefault();
+                        const delta = e.deltaY > 0 ? -0.15 : 0.15;
+                        viewerScale = Math.min(5, Math.max(0.5, viewerScale + delta));
+                        if (viewerScale <= 1) {
+                            viewerPanX = 0;
+                            viewerPanY = 0;
+                        }
+                        applyViewerTransform(img);
+                        updateResetLabel();
+                    }, { passive: false });
+
+                    img.addEventListener("dblclick", (e) => {
+                        e.stopPropagation();
+                        if (viewerScale > 1) {
+                            resetViewerZoom(img);
+                        } else {
+                            viewerScale = 2.5;
+                            applyViewerTransform(img);
+                        }
+                        updateResetLabel();
+                    });
+
+                    img.addEventListener("mousedown", (e) => {
+                        if (viewerScale <= 1) return;
+                        isPanning = true;
+                        panStartX = e.clientX - viewerPanX;
+                        panStartY = e.clientY - viewerPanY;
+                        img.style.cursor = "grabbing";
+                        e.preventDefault();
+                    });
+
+                    window.addEventListener("mousemove", (e) => {
+                        if (!isPanning) return;
+                        viewerPanX = e.clientX - panStartX;
+                        viewerPanY = e.clientY - panStartY;
+                        applyViewerTransform(img);
+                    });
+
+                    window.addEventListener("mouseup", () => {
+                        if (!isPanning) return;
+                        isPanning = false;
+                        applyViewerTransform(img);
+                    });
+
+                    document.addEventListener("keydown", (e) => {
+                        if (e.key === "Escape" && overlay.classList.contains("open")) {
+                            overlay.classList.remove("open");
+                            resetViewerZoom(img);
+                            updateResetLabel();
+                        }
+                    });
+                }
+
+                const img = overlay.querySelector(".image-viewer-img");
+                const resetLabel = overlay.querySelector('[data-zoom="reset"]');
+                img.src = src;
+                resetViewerZoom(img);
+                if (resetLabel) resetLabel.textContent = "100%";
+                overlay.classList.add("open");
+            }
+
+            document.querySelectorAll("[data-view-src]").forEach(el => {
+                el.addEventListener("click", () => openImageViewer(el.dataset.viewSrc));
+            });
+
+            document.querySelectorAll(".scan-again-btn").forEach(btn => {
+                btn.addEventListener("click", async () => {
+                    const orderId = btn.dataset.orderId;
+                    const row = btn.closest("tr");
+                    if (!orderId || !row) return;
+
+                    btn.disabled = true;
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+                    setBanner(`Scanning order #${orderId} again…`, "alert-info", true);
+
+                    try {
+                        const res = await fetch(scanUrlFor(orderId), { method: "POST" });
+                        let result = {};
+                        try {
+                            result = await res.json();
+                        } catch (_) {
+                            result = {};
+                        }
+
+                        if (result.success && result.data) {
+                            const data = result.data;
+                            const orderNoInput = row.querySelector('[data-field="order_no"]');
+                            const nameInput = row.querySelector('[data-field="name"]');
+                            const phoneInput = row.querySelector('[data-field="phone"]');
+
+                            if (data.order_no) orderNoInput.value = data.order_no;
+                            nameInput.value = data.name || "-";
+                            phoneInput.value = data.phone || "-";
+
+                            [orderNoInput, nameInput, phoneInput].forEach(el => {
+                                if (el && el.value) {
+                                    el.classList.add("ai-highlighted");
+                                    setTimeout(() => el.classList.remove("ai-highlighted"), 2500);
+                                }
+                            });
+
+                            const filled = [data.order_no, data.name, data.phone].filter(Boolean).length;
+                            if (filled) {
+                                setBanner(
+                                    `AI filled ${filled} field(s). Review and click Save Fixes when ready.`,
+                                    "alert-success",
+                                    false
+                                );
+                            } else {
+                                setBanner(
+                                    "AI scanned again but found no clear details. Enter them manually.",
+                                    "alert-warning",
+                                    false
+                                );
+                            }
+                        } else {
+                            setBanner(result.error || "Scan again failed. Try manually.", "alert-warning", false);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        setBanner("Could not scan again. Check your connection.", "alert-danger", false);
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }
+                });
+            });
+
+            const saveBtn = document.getElementById("save-fixes-btn");
+            if (saveBtn) {
+                saveBtn.addEventListener("click", async () => {
+                    const rows = document.querySelectorAll("#review-body tr[data-id]");
+                    const updates = [];
+                    rows.forEach(row => {
+                        updates.push({
+                            id: parseInt(row.dataset.id, 10),
+                            order_no: row.querySelector('[data-field="order_no"]').value.trim(),
+                            name: row.querySelector('[data-field="name"]').value.trim(),
+                            phone: row.querySelector('[data-field="phone"]').value.trim()
+                        });
+                    });
+
+                    if (!updates.length) {
+                        setBanner("Nothing to save.", "alert-warning", false);
+                        return;
+                    }
+
+                    const missing = updates.find(u => !u.name);
+                    if (missing) {
+                        setBanner("Please fill in a customer name for every row before saving.", "alert-warning", false);
+                        return;
+                    }
+
+                    saveBtn.disabled = true;
+                    showProgress({
+                        title: "Saving fixes…",
+                        detail: `Updating ${updates.length} order(s)`,
+                        current: 0,
+                        total: updates.length,
+                        stats: "Please wait…"
+                    });
+                    setBanner(`Saving ${updates.length} fix(es)…`, "alert-info", true);
+
+                    try {
+                        const response = await fetch(updateUrl, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ orders: updates })
+                        });
+                        let result = {};
+                        try {
+                            result = await response.json();
+                        } catch (_) {
+                            result = {};
+                        }
+
+                        hideProgress();
+
+                        if (result.success) {
+                            const skipped = result.skipped || [];
+                            if (skipped.length) {
+                                setBanner(
+                                    `Updated ${result.updated_count} order(s), ${skipped.length} still need a valid name.`,
+                                    "alert-warning",
+                                    false
+                                );
+                                saveBtn.disabled = false;
+                                // Reload to drop ones that were fixed
+                                setTimeout(() => window.location.reload(), 1200);
+                            } else {
+                                setBanner(
+                                    `Saved ${result.updated_count} order(s). Redirecting…`,
+                                    "alert-success",
+                                    false
+                                );
+                                setTimeout(() => {
+                                    window.location.href = homeUrl;
+                                }, 900);
+                            }
+                        } else {
+                            setBanner(result.error || "Failed to save fixes.", "alert-danger", false);
+                            saveBtn.disabled = false;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        hideProgress();
+                        setBanner("Could not save fixes. Please try again.", "alert-danger", false);
+                        saveBtn.disabled = false;
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>

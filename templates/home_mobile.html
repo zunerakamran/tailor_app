@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Textilion</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.jpg') }}" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        html,
+        body {
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+    </div>
+    <div class="container mt-4">
+        <div class="home-top-bar-mobile shadow-sm bg-white p-2">
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <!-- Logo on the left -->
+                <img src="{{ url_for('static', filename='logo.jpg') }}" class="brand-logo-mobile">
+
+                <!-- Buttons grouped on the right -->
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('add_order') }}" class="btn add-order-btn w-auto px-3 py-1">
+                        <i class="bi bi-plus-lg"></i>
+                    </a>
+                    <a href="{{ url_for('bulk_upload') }}" class="btn add-order-btn w-auto px-3 py-1" title="Bulk Upload">
+                        <i class="bi bi-file-earmark-zip"></i>
+                    </a>
+                    <a href="{{ url_for('needs_review') }}" class="btn add-order-btn w-auto px-3 py-1"
+                        title="Under review{% if needs_review_count %} ({{ needs_review_count }}){% endif %}">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        {% if needs_review_count %}
+                        <span class="badge bg-warning text-dark">{{ needs_review_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn add-order-btn w-auto px-3 py-1">
+                        <i class="bi bi-power me-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <form id="searchForm" method="get">
+                <input class="form-control" type="search" name="q" id="searchInput" placeholder="Search Order"
+                    value="{{ q }}">
+            </form>
+
+        </div>
+
+        <!-- //Refresh button -->
+        <a class="btn add-order-btn px-3 mb-2" onclick="window.location.href = window.location.pathname">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+        </a>
+
+        {% if orders %}
+        {% for order in orders %}
+        <div class="order-item" data-name="{{ order.name | lower }}" data-phone="{{ order.phone }}">
+            <div class="container-fluid mobile-order-view ">
+                <div class="row gx-2 d-flex justify-content-between align-items-center mb-3">
+                    <div class="col-auto">
+                        <h6>
+                            <span>Order No </span>{{ order.order_no }}
+                        </h6>
+                    </div>
+                    <div class="col-auto">
+                        <h6 class="text-end">{{ order.date.strftime("%d-%m-%Y") }}</h6>
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-between align-items-center mb-3">
+                    <div class="col-auto">
+                        <h6>{{ order.name }}</h6>
+                    </div>
+                    <div class="col-auto">
+                        <h6 class="text-end">{{ order.phone }}</h6>
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-between align-items-center mb-3">
+                    <div class="col-auto">
+                        <h6>{{ order.order_for }}</h6>
+                    </div>
+                    <div class="col-auto">
+                        <h6 class="text-end">{{ order.order_type }}</h6>
+                    </div>
+                </div>
+                {% if order.last_image %}
+                <a href="{{ url_for('order_gallery', order_id=order.id, index=0) }}" target="_blank">
+                    <img src="{{ url_for('static', filename='uploads/' + order.last_image) }}" class="home-order-image">
+                </a>
+                {% else %}
+                <div id="image-container-{{order.id}}" class="image-container" data-mode="single"
+                    data-id='{{order.id}}'>
+                    <label class="add-image-box" id="add-btn-{{order.id}}">
+                        <span class="plus-icon">+</span>
+                    </label>
+                </div>
+                {% endif %}
+                <div class="text-end">
+                    <a href="{{ url_for('view_order', order_id=order.id) }}" class="btn btn-sm btn-outline-primary mb-1"
+                        title="View Order">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ url_for('update_order', order_id=order.id) }}"
+                        class="btn btn-sm btn-outline-success mb-1" title="Edit Order">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-danger mb-1" data-bs-toggle="modal"
+                        data-bs-target="#deleteModal{{ order.id }}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+        <div class="modal fade" id="deleteModal{{ order.id }}" tabindex="-1"
+            aria-labelledby="deleteModalLabel{{ order.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-3 shadow-sm">
+                    <div class="modal-header border-0 bg-danger">
+                        <h5 class="modal-title text-white" id="deleteModalLabel{{ order.id }}">Confirm Delete</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body d-flex justify-content-center align-items-center" style="height: 100px">
+                        Are you sure you want to delete order {{ order.order_no }}?
+                    </div>
+                    <div class="modal-footer justify-content-center border-0 pb-4">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
+                            data-bs-dismiss="modal">Cancel</button>
+                        <a href="{{ url_for('delete_order', order_id=order.id) }}"
+                            class="btn btn-danger rounded-pill px-4" onclick="showLoader()">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-muted">No orders found.</p>
+        {% endif %}
+
+        <!-- pagination -->
+        {% if pagination.pages > 1 %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-3">
+
+                {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('home', page=pagination.prev_num, q=q) }}">Prev</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Prev</span></li>
+                {% endif %}
+
+                <!-- First page (only if current page is not 1) -->
+                {% if pagination.page != 1 %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('home', page=1, q=q) }}">1</a></li>
+                {% endif %}
+
+                <!-- Ellipsis if current page is far from start -->
+                {% if pagination.page > 2 %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+
+                <!-- Current page (always visible) -->
+                <li class="page-item active"><span class="page-link">{{ pagination.page }}</span></li>
+
+                <!-- Ellipsis if current page is far from last page -->
+                {% if pagination.page < pagination.pages - 1 %} <li class="page-item disabled"><span
+                        class="page-link">…</span></li>
+                    {% endif %}
+
+                    <!-- Last page (only if current page is not last) -->
+                    {% if pagination.page != pagination.pages %}
+                    <li class="page-item"><a class="page-link"
+                            href="{{ url_for('home', page=pagination.pages, q=q) }}">{{ pagination.pages }}</a></li>
+                    {% endif %}
+
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('home', page=pagination.next_num, q=q) }}">Next</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    {% endif %}
+
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+
+    <script>
+        const searchInput = document.getElementById("searchInput");
+        const searchForm = document.getElementById("searchForm");
+
+        searchInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                searchForm.submit();
+            }
+        });
+        const updateImageUrl = "{{ url_for('update_image') }}";
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js', v='2.0') }}"></script>
+</body>
+
+</html>

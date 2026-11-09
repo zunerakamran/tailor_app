@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Upload - Textilion</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.jpg') }}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="bg-light">
+    <div id="loader-overlay">
+        <div class="bulk-progress-card">
+            <div class="spinner mx-auto mb-3"></div>
+            <h5 id="bulk-progress-title" class="mb-1">Working…</h5>
+            <p id="bulk-progress-detail" class="text-muted mb-3">Please wait</p>
+            <div class="progress bulk-progress-bar-wrap mb-2" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <div id="bulk-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                    style="width: 0%"></div>
+            </div>
+            <div class="d-flex justify-content-between small">
+                <span id="bulk-progress-count">0 / 0</span>
+                <span id="bulk-progress-stats" class="text-muted"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ url_for('home') }}" class="btn back-btn">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header add-order-header">
+                <h4 class="mb-0"><i class="bi bi-file-earmark-zip me-2"></i>Bulk Upload Orders</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    Upload a ZIP of order slips. Each image is scanned and saved as an order immediately
+                    (so progress is kept if the connection drops). Orders AI could not read fully are saved
+                    with name/phone as <strong>-</strong> and stay in
+                    <a href="{{ url_for('needs_review') }}">Under Review</a>
+                    until you fix them
+                    {% if needs_review_count %}
+                    <span class="badge bg-warning text-dark">{{ needs_review_count }} waiting</span>
+                    {% endif %}.
+                </p>
+
+                <div id="bulk-status-banner"
+                    class="alert alert-info d-none align-items-center justify-content-between mb-3 shadow-sm rounded-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status" id="bulk-spinner">
+                            <span class="visually-hidden">Processing...</span>
+                        </div>
+                        <i class="bi bi-stars text-warning fs-5 d-none" id="bulk-stars-icon"></i>
+                        <span id="bulk-status-text" class="fw-medium">Ready to scan.</span>
+                    </div>
+                </div>
+
+                <!-- Step 1: Upload ZIP -->
+                <div id="bulk-upload-step">
+                    <label class="bulk-dropzone" id="bulk-dropzone" for="bulk-zip-input">
+                        <i class="bi bi-cloud-upload fs-1 d-block mb-2"></i>
+                        <span class="fw-semibold">Drop a ZIP file here or click to browse</span>
+                        <span class="d-block text-muted small mt-1">JPG, PNG, WEBP inside the ZIP · max 2000 images · up
+                            to 100 MB</span>
+                        <input type="file" id="bulk-zip-input" accept=".zip,application/zip" style="display: none;">
+                    </label>
+                    <div id="bulk-selected-file" class="mt-2 text-muted small d-none"></div>
+                    <button type="button" id="bulk-scan-btn" class="btn w-100 add-order-btn mt-3" disabled>
+                        <i class="bi bi-stars me-1"></i> Scan &amp; Create Orders
+                    </button>
+                </div>
+
+                <!-- Step 2: Fix needs-review orders -->
+                <div id="bulk-review-step" class="d-none">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <div>
+                            <span class="fw-semibold" id="bulk-summary-text"></span>
+                            <div class="small text-muted" id="bulk-summary-hint">
+                                These orders are already saved. Fix name / phone / order no, then save.
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" id="bulk-reset-btn" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-arrow-counterclockwise"></i> New ZIP
+                            </button>
+                            <a href="{{ url_for('home') }}" class="btn btn-sm btn-outline-secondary">Go to Home</a>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle bulk-review-table" id="bulk-results-table">
+                            <thead class="home-table-header">
+                                <tr>
+                                    <th style="width: 90px;">Image</th>
+                                    <th>File</th>
+                                    <th style="min-width: 90px;">Order No</th>
+                                    <th style="min-width: 140px;">Name</th>
+                                    <th style="min-width: 130px;">Phone</th>
+                                    <th>Status</th>
+                                    <th style="width: 70px;">View</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulk-results-body"></tbody>
+                        </table>
+                    </div>
+
+                    <button type="button" id="bulk-save-btn" class="btn w-100 add-order-btn mt-2">
+                        <i class="bi bi-check2-circle me-1"></i> Save Fixes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"></script>
+    <script>
+        (function () {
+            const extractUrl = "{{ url_for('bulk_extract_zip') }}";
+            const scanBatchUrl = "{{ url_for('bulk_scan_batch') }}";
+            const createUrl = "{{ url_for('bulk_create_orders') }}";
+            const updateUrl = "{{ url_for('bulk_update_orders') }}";
+            const homeUrl = "{{ url_for('home') }}";
+            const needsReviewUrl = "{{ url_for('needs_review') }}";
+            const SCAN_BATCH_SIZE = 8;
+
+            const zipInput = document.getElementById("bulk-zip-input");
+            const dropzone = document.getElementById("bulk-dropzone");
+            const selectedFileEl = document.getElementById("bulk-selected-file");
+            const scanBtn = document.getElementById("bulk-scan-btn");
+            const saveBtn = document.getElementById("bulk-save-btn");
+            const resetBtn = document.getElementById("bulk-reset-btn");
+            const uploadStep = document.getElementById("bulk-upload-step");
+            const reviewStep = document.getElementById("bulk-review-step");
+            const resultsBody = document.getElementById("bulk-results-body");
+            const summaryText = document.getElementById("bulk-summary-text");
+
+            let selectedZip = null;
+            let reviewOrders = [];
+
+            function showProgress({ title, detail, current, total, stats }) {
+                const overlay = document.getElementById("loader-overlay");
+                const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+                document.getElementById("bulk-progress-title").textContent = title || "Working…";
+                document.getElementById("bulk-progress-detail").textContent = detail || "Please wait";
+                document.getElementById("bulk-progress-count").textContent = `${current} / ${total}`;
+                document.getElementById("bulk-progress-stats").textContent = stats || "";
+                document.getElementById("bulk-progress-bar").style.width = `${pct}%`;
+                overlay.style.display = "flex";
+            }
+
+            function hideProgress() {
+                document.getElementById("loader-overlay").style.display = "none";
+                document.getElementById("bulk-progress-bar").style.width = "0%";
+            }
+
+            function setBanner(text, alertClass, showSpinner) {
+                const banner = document.getElementById("bulk-status-banner");
+                const statusText = document.getElementById("bulk-status-text");
+                const spinner = document.getElementById("bulk-spinner");
+                const starsIcon = document.getElementById("bulk-stars-icon");
+                banner.classList.remove("d-none", "alert-danger", "alert-success", "alert-warning", "alert-info");
+                banner.classList.add("d-flex", alertClass);
+                statusText.innerText = text;
+                if (showSpinner) {
+                    spinner.classList.remove("d-none");
+                    starsIcon.classList.add("d-none");
+                } else {
+                    spinner.classList.add("d-none");
+                    starsIcon.classList.remove("d-none");
+                }
+            }
+
+            function hideBanner() {
+                const banner = document.getElementById("bulk-status-banner");
+                banner.classList.add("d-none");
+                banner.classList.remove("d-flex");
+            }
+
+            function setZipFile(file) {
+                if (!file) return;
+                if (!file.name.toLowerCase().endsWith(".zip")) {
+                    setBanner("Please choose a .zip file.", "alert-warning", false);
+                    return;
+                }
+                selectedZip = file;
+                selectedFileEl.classList.remove("d-none");
+                selectedFileEl.textContent = `Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+                scanBtn.disabled = false;
+                hideBanner();
+            }
+
+            zipInput.addEventListener("change", () => {
+                if (zipInput.files && zipInput.files[0]) {
+                    setZipFile(zipInput.files[0]);
+                }
+            });
+
+            ["dragenter", "dragover"].forEach(evt => {
+                dropzone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.add("dragover");
+                });
+            });
+            ["dragleave", "drop"].forEach(evt => {
+                dropzone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.remove("dragover");
+                });
+            });
+            dropzone.addEventListener("drop", (e) => {
+                const file = e.dataTransfer.files && e.dataTransfer.files[0];
+                if (file) setZipFile(file);
+            });
+
+            function escapeHtml(str) {
+                return String(str || "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;");
+            }
+
+            function openImageViewer(src) {
+                let overlay = document.getElementById("image-viewer-overlay");
+                if (!overlay) {
+                    overlay = document.createElement("div");
+                    overlay.id = "image-viewer-overlay";
+                    overlay.innerHTML = `
+                        <button type="button" class="image-viewer-close" aria-label="Close">&times;</button>
+                        <img src="" alt="Full preview">
+                    `;
+                    document.body.appendChild(overlay);
+                    overlay.addEventListener("click", (e) => {
+                        if (e.target === overlay || e.target.classList.contains("image-viewer-close")) {
+                            overlay.classList.remove("open");
+                        }
+                    });
+                    document.addEventListener("keydown", (e) => {
+                        if (e.key === "Escape") overlay.classList.remove("open");
+                    });
+                }
+                overlay.querySelector("img").src = src;
+                overlay.classList.add("open");
+            }
+
+            function renderReviewTable(orders, duplicates) {
+                reviewOrders = orders || [];
+                const dupList = duplicates || [];
+                resultsBody.innerHTML = "";
+
+                reviewOrders.forEach((item, index) => {
+                    const imageUrl = item.image_url ? escapeHtml(item.image_url) : "";
+                    const thumb = imageUrl
+                        ? `<button type="button" class="bulk-thumb-btn" data-view-src="${imageUrl}" title="View image">
+                                <img src="${imageUrl}" class="bulk-thumb" alt="">
+                           </button>`
+                        : `<span class="text-muted">—</span>`;
+                    const viewBtn = imageUrl
+                        ? `<button type="button" class="btn btn-sm btn-outline-primary" data-view-src="${imageUrl}" title="View image">
+                                <i class="bi bi-eye"></i>
+                           </button>`
+                        : `<span class="text-muted">—</span>`;
+
+                    const tr = document.createElement("tr");
+                    tr.dataset.index = index;
+                    tr.classList.add("table-warning");
+                    tr.innerHTML = `
+                        <td>${thumb}</td>
+                        <td class="small text-break">${escapeHtml(item.source_filename || "")}</td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm bulk-field" data-field="order_no"
+                                data-index="${index}" value="${escapeHtml(String(item.order_no ?? ""))}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm bulk-field" data-field="name"
+                                data-index="${index}" value="${escapeHtml(item.name || '-')}"
+                                placeholder="Name (or -)">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm bulk-field" data-field="phone"
+                                data-index="${index}" value="${escapeHtml(item.phone === 'XYZ' ? '-' : (item.phone || '-'))}"
+                                placeholder="Phone (or -)">
+                        </td>
+                        <td>
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle"
+                                title="${escapeHtml(item.error || 'Needs manual fix')}">Needs review</span>
+                        </td>
+                        <td class="text-center">${viewBtn}</td>
+                    `;
+                    resultsBody.appendChild(tr);
+                });
+
+                // Duplicates: not created — show reason only (no editable save)
+                dupList.forEach((item) => {
+                    const imageUrl = item.image_url ? escapeHtml(item.image_url) : "";
+                    const thumb = imageUrl
+                        ? `<button type="button" class="bulk-thumb-btn" data-view-src="${imageUrl}" title="View image">
+                                <img src="${imageUrl}" class="bulk-thumb" alt="">
+                           </button>`
+                        : `<span class="text-muted">—</span>`;
+                    const viewBtn = imageUrl
+                        ? `<button type="button" class="btn btn-sm btn-outline-primary" data-view-src="${imageUrl}" title="View image">
+                                <i class="bi bi-eye"></i>
+                           </button>`
+                        : `<span class="text-muted">—</span>`;
+                    const reason = item.reason ||
+                        `Order number ${item.order_no} is already created — this image was not saved`;
+
+                    const tr = document.createElement("tr");
+                    tr.classList.add("table-secondary");
+                    tr.innerHTML = `
+                        <td>${thumb}</td>
+                        <td class="small text-break">${escapeHtml(item.source_filename || item.source || "")}</td>
+                        <td class="fw-semibold">${escapeHtml(String(item.order_no ?? "—"))}</td>
+                        <td class="text-muted small">${escapeHtml(item.name || "-")}</td>
+                        <td class="text-muted small">${escapeHtml(item.phone || "-")}</td>
+                        <td>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle"
+                                title="${escapeHtml(reason)}">Already created</span>
+                            <div class="small text-muted mt-1">${escapeHtml(reason)}</div>
+                        </td>
+                        <td class="text-center">${viewBtn}</td>
+                    `;
+                    resultsBody.appendChild(tr);
+                });
+
+                resultsBody.querySelectorAll("[data-view-src]").forEach(el => {
+                    el.addEventListener("click", () => openImageViewer(el.dataset.viewSrc));
+                });
+
+                const parts = [];
+                if (reviewOrders.length) parts.push(`${reviewOrders.length} need review`);
+                if (dupList.length) parts.push(`${dupList.length} already created (not saved)`);
+                summaryText.textContent = parts.join(" · ") || "Review";
+
+                const hint = document.getElementById("bulk-summary-hint");
+                if (hint) {
+                    if (reviewOrders.length && dupList.length) {
+                        hint.textContent = "Fix needs-review rows and save. Already-created images were not saved again.";
+                    } else if (dupList.length) {
+                        hint.textContent = "These images were not saved because their order number already exists.";
+                    } else {
+                        hint.textContent = "These orders are already saved. Fix name / phone / order no, then save.";
+                    }
+                }
+
+                // Hide Save when there is nothing editable
+                saveBtn.classList.toggle("d-none", reviewOrders.length === 0);
+
+                uploadStep.classList.add("d-none");
+                reviewStep.classList.remove("d-none");
+            }
+
+            function collectReviewUpdates() {
+                const updates = [];
+                reviewOrders.forEach((item, index) => {
+                    if (!item.id) return;
+                    const row = resultsBody.querySelector(`tr[data-index="${index}"]`);
+                    if (!row) return;
+                    updates.push({
+                        id: item.id,
+                        order_no: row.querySelector('[data-field="order_no"]').value.trim(),
+                        name: row.querySelector('[data-field="name"]').value.trim(),
+                        phone: row.querySelector('[data-field="phone"]').value.trim()
+                    });
+                });
+                return updates;
+            }
+
+            scanBtn.addEventListener("click", async () => {
+                if (!selectedZip) return;
+                scanBtn.disabled = true;
+                reviewOrders = [];
+
+                showProgress({
+                    title: "Extracting ZIP…",
+                    detail: "Unpacking images from your ZIP file",
+                    current: 0,
+                    total: 0,
+                    stats: ""
+                });
+                setBanner("Extracting images from ZIP…", "alert-info", true);
+
+                try {
+                    const formData = new FormData();
+                    formData.append("zip_file", selectedZip);
+
+                    const extractRes = await fetch(extractUrl, { method: "POST", body: formData });
+                    let extractResult = {};
+                    try {
+                        extractResult = await extractRes.json();
+                    } catch (_) {
+                        extractResult = {};
+                    }
+
+                    if (!extractResult.success || !Array.isArray(extractResult.results)) {
+                        hideProgress();
+                        setBanner(extractResult.error || "Could not process the ZIP file.", "alert-warning", false);
+                        scanBtn.disabled = false;
+                        return;
+                    }
+
+                    const items = extractResult.results;
+                    const total = items.length;
+                    let createdOk = 0;
+                    let needsReviewCount = 0;
+                    let failedCreate = 0;
+                    let duplicateCount = 0;
+                    const reviewList = reviewOrders;
+                    const duplicateList = [];
+
+                    showProgress({
+                        title: "Scan & create orders…",
+                        detail: "Each batch is scanned then saved immediately",
+                        current: 0,
+                        total,
+                        stats: "0 created · 0 need review"
+                    });
+
+                    for (let start = 0; start < total; start += SCAN_BATCH_SIZE) {
+                        const batchItems = items.slice(start, start + SCAN_BATCH_SIZE);
+                        const batchPaths = [];
+                        const batchMeta = [];
+                        const processed = Math.min(start + batchItems.length, total);
+
+                        batchItems.forEach(item => {
+                            if (!item.image_path) {
+                                item.scan_ok = false;
+                                item.needs_review = true;
+                                item.name = "-";
+                                item.phone = "-";
+                                item.order_no = "";
+                                item.error = item.error || "Image could not be extracted.";
+                            } else {
+                                batchPaths.push(item.image_path);
+                                batchMeta.push(item);
+                            }
+                        });
+
+                        showProgress({
+                            title: "Scan & create orders…",
+                            detail: `Scanning batch ${Math.floor(start / SCAN_BATCH_SIZE) + 1}…`,
+                            current: start,
+                            total,
+                            stats: `${createdOk} created · ${needsReviewCount} need review`
+                        });
+                        setBanner(`Processing ${processed} of ${total}…`, "alert-info", true);
+
+                        // 1) Scan batch
+                        if (batchPaths.length) {
+                            try {
+                                const scanRes = await fetch(scanBatchUrl, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ image_paths: batchPaths })
+                                });
+                                let scanResult = {};
+                                try {
+                                    scanResult = await scanRes.json();
+                                } catch (_) {
+                                    scanResult = {};
+                                }
+
+                                const batchResults = (scanResult.success && Array.isArray(scanResult.results))
+                                    ? scanResult.results
+                                    : [];
+
+                                batchMeta.forEach((item, idx) => {
+                                    const one = batchResults[idx];
+                                    if (one && one.success && one.data) {
+                                        item.order_no = one.data.order_no || "";
+                                        item.name = one.data.name || "-";
+                                        item.phone = one.data.phone || "-";
+                                        const hasRealName = !!(item.name && item.name.trim() && item.name.trim() !== "-");
+                                        item.scan_ok = hasRealName;
+                                        item.needs_review = !item.scan_ok;
+                                        item.error = item.scan_ok ? null : "Name missing — saved as - for review.";
+                                    } else {
+                                        item.scan_ok = false;
+                                        item.needs_review = true;
+                                        item.order_no = "";
+                                        item.name = "-";
+                                        item.phone = "-";
+                                        item.error = (one && one.error) || "AI could not read this image.";
+                                    }
+                                });
+                            } catch (err) {
+                                console.error(err);
+                                batchMeta.forEach(item => {
+                                    item.scan_ok = false;
+                                    item.needs_review = true;
+                                    item.error = "Could not scan this image.";
+                                });
+                            }
+                        }
+
+                        // 2) Create orders for this batch immediately
+                        const toCreate = batchItems
+                            .filter(item => item.image_path)
+                            .map(item => ({
+                                include: true,
+                                image_path: item.image_path,
+                                source_filename: item.source_filename,
+                                order_no: item.order_no || "",
+                                name: item.name || "",
+                                phone: item.phone || "",
+                                needs_review: !!item.needs_review,
+                                order_for: "Self",
+                                order_type: "Shalwar Kameez",
+                                address: "",
+                                notes: item.error || ""
+                            }));
+
+                        if (toCreate.length) {
+                            showProgress({
+                                title: "Scan & create orders…",
+                                detail: `Saving ${toCreate.length} order(s) from this batch…`,
+                                current: start,
+                                total,
+                                stats: `${createdOk} created · ${needsReviewCount} need review`
+                            });
+
+                            try {
+                                const createRes = await fetch(createUrl, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ orders: toCreate })
+                                });
+                                let createResult = {};
+                                try {
+                                    createResult = await createRes.json();
+                                } catch (_) {
+                                    createResult = {};
+                                }
+
+                                if (createResult.success && Array.isArray(createResult.created)) {
+                                    createResult.created.forEach(created => {
+                                        if (created.needs_review) {
+                                            needsReviewCount++;
+                                            const match = batchItems.find(
+                                                i => i.image_path === created.image_path ||
+                                                    i.source_filename === created.source_filename
+                                            );
+                                            reviewList.push({
+                                                id: created.id,
+                                                order_no: created.order_no,
+                                                name: created.name,
+                                                phone: created.phone,
+                                                source_filename: created.source_filename,
+                                                image_path: created.image_path,
+                                                image_url: created.image_url,
+                                                error: match ? match.error : "Needs review"
+                                            });
+                                        } else {
+                                            createdOk++;
+                                        }
+                                    });
+                                    const skippedRows = createResult.skipped || [];
+                                    skippedRows.forEach(row => {
+                                        if (row.duplicate) {
+                                            duplicateCount++;
+                                            duplicateList.push(row);
+                                        } else {
+                                            failedCreate++;
+                                        }
+                                    });
+                                } else {
+                                    failedCreate += toCreate.length;
+                                }
+                            } catch (err) {
+                                console.error(err);
+                                failedCreate += toCreate.length;
+                            }
+                        }
+
+                        showProgress({
+                            title: "Scan & create orders…",
+                            detail: `Processed ${processed} of ${total}`,
+                            current: processed,
+                            total,
+                            stats: `${createdOk} created · ${needsReviewCount} need review` +
+                                (duplicateCount ? ` · ${duplicateCount} already created` : "") +
+                                (failedCreate ? ` · ${failedCreate} failed` : "")
+                        });
+                    }
+
+                    hideProgress();
+
+                    if (reviewList.length || duplicateList.length) {
+                        const msgParts = [];
+                        if (createdOk) msgParts.push(`${createdOk} created`);
+                        if (reviewList.length) msgParts.push(`${reviewList.length} need review`);
+                        if (duplicateList.length) {
+                            msgParts.push(
+                                `${duplicateList.length} skipped (order number already created)`
+                            );
+                        }
+                        if (failedCreate) msgParts.push(`${failedCreate} failed`);
+                        setBanner(
+                            `Finished — ${msgParts.join(", ")}. See under review below.`,
+                            "alert-warning",
+                            false
+                        );
+                        renderReviewTable(reviewList, duplicateList);
+                        scanBtn.disabled = false;
+                    } else {
+                        setBanner(
+                            `Finished — ${createdOk} order(s) created.` +
+                            (failedCreate ? ` ${failedCreate} failed.` : "") +
+                            " Redirecting…",
+                            "alert-success",
+                            false
+                        );
+                        setTimeout(() => {
+                            window.location.href = homeUrl;
+                        }, 1000);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    hideProgress();
+                    setBanner(
+                        "Connection issue. Orders already created are saved. Opening under-review list…",
+                        "alert-danger",
+                        false
+                    );
+                    scanBtn.disabled = false;
+                    setTimeout(() => {
+                        window.location.href = needsReviewUrl;
+                    }, 1200);
+                }
+            });
+
+            saveBtn.addEventListener("click", async () => {
+                const updates = collectReviewUpdates();
+                if (!updates.length) {
+                    setBanner("Nothing to save.", "alert-warning", false);
+                    return;
+                }
+
+                const missing = updates.find(u => !u.name);
+                if (missing) {
+                    setBanner("Please fill in a customer name for every row before saving.", "alert-warning", false);
+                    return;
+                }
+
+                saveBtn.disabled = true;
+                showProgress({
+                    title: "Saving fixes…",
+                    detail: `Updating ${updates.length} order(s)`,
+                    current: 0,
+                    total: updates.length,
+                    stats: "Please wait…"
+                });
+                setBanner(`Saving ${updates.length} fix(es)…`, "alert-info", true);
+
+                try {
+                    const response = await fetch(updateUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ orders: updates })
+                    });
+                    let result = {};
+                    try {
+                        result = await response.json();
+                    } catch (_) {
+                        result = {};
+                    }
+
+                    hideProgress();
+
+                    if (result.success) {
+                        const skipped = result.skipped || [];
+                        if (skipped.length) {
+                            setBanner(
+                                `Updated ${result.updated_count} order(s), ${skipped.length} still need a valid name.`,
+                                "alert-warning",
+                                false
+                            );
+                            saveBtn.disabled = false;
+                        } else {
+                            setBanner(
+                                `Saved ${result.updated_count} order(s). Redirecting…`,
+                                "alert-success",
+                                false
+                            );
+                            setTimeout(() => {
+                                window.location.href = homeUrl;
+                            }, 900);
+                        }
+                    } else {
+                        setBanner(result.error || "Failed to save fixes.", "alert-danger", false);
+                        saveBtn.disabled = false;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    hideProgress();
+                    setBanner("Could not save fixes. Please try again.", "alert-danger", false);
+                    saveBtn.disabled = false;
+                }
+            });
+
+            resetBtn.addEventListener("click", () => {
+                selectedZip = null;
+                reviewOrders = [];
+                zipInput.value = "";
+                selectedFileEl.classList.add("d-none");
+                selectedFileEl.textContent = "";
+                scanBtn.disabled = true;
+                saveBtn.disabled = false;
+                resultsBody.innerHTML = "";
+                reviewStep.classList.add("d-none");
+                uploadStep.classList.remove("d-none");
+                hideBanner();
+                hideProgress();
+            });
+        })();
+    </script>
+</body>
+
+</html>

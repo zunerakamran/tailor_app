@@ -1,0 +1,9 @@
+pymysql
+Flask
+Flask-SQLAlchemy
+Pillow==10.0.0
+gunicorn
+google-generativeai
+python-dotenv
+google-genai
+greenlet==3.0.0
